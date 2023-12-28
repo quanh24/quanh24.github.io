@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteBase /
+    RewriteRule ^home/?$ index.html [NC,L] 
+    RewriteRule ^(noel|newyear)$ index.$1.html [NC,L]
+</IfModule>
