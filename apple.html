@@ -11,6 +11,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html,
+        body {
+            overflow: hidden;
+        }
+
         body {
             margin: 0;
             padding: 20px;
@@ -137,9 +142,9 @@
             }
 
             .cell {
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
             }
 
             button {
@@ -149,7 +154,6 @@
             }
 
             #board-container {
-                transform: scale(0.9);
                 transform-origin: top center;
             }
 
@@ -197,7 +201,17 @@
 
     <!-- SCRIPT (tối ưu mobile) -->
     <script>
-        const ROWS = 10, COLS = 18;
+        let ROWS, COLS;
+        if (window.innerWidth <= 768) {
+            // Mobile
+            ROWS = 18;
+            COLS = 10;
+        } else {
+            // Desktop
+            ROWS = 10;
+            COLS = 18;
+        }
+
         let grid = [], score = 0, start = null, undoStack = [];
         let board = document.getElementById('board');
         let scoreEl = document.getElementById('score');
