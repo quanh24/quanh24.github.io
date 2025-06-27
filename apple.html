@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Fruit Box</title>
     <style>
         body {
@@ -10,20 +10,38 @@
             padding: 20px;
             height: 100vh;
             display: flex;
-            flex-direction: row;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             user-select: none;
-            background: #fdfdfd;
-            box-sizing: border-box;
+            background: #fffaf5;
+            color: #333;
         }
 
-        /* Left area: game UI */
         #game-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+        }
+
+        button {
+            background: linear-gradient(#ffcc70, #ffaa00);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 4px;
+            cursor: pointer;
+            box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #mode-buttons {
+            margin-bottom: 10px;
         }
 
         #board-container {
@@ -32,102 +50,106 @@
         }
 
         #board {
-            border: 1px solid #333;
-            cursor: crosshair;
+            border: 3px solid #ffaa00;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin: 10px 0;
         }
 
         .cell {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             text-align: center;
             vertical-align: middle;
-            line-height: 30px;
-            border: 1px solid #ccc;
+            border: 1px solid #eee;
+            font-size: 18px;
             font-weight: bold;
+            background-color: #fffdf4;
+            transition: background 0.2s;
         }
 
         .selected {
-            background: rgba(255, 200, 0, 0.5);
+            background-color: #fff0b3 !important;
         }
 
-        h2,
-        #controls {
-            margin-bottom: 10px;
-        }
-
-        button {
-            padding: 5px 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #timer {
-            font-size: 20px;
-            font-weight: bold;
-            margin-left: 15px;
-        }
-
-        #game-over {
-            color: red;
-            font-weight: bold;
-            font-size: 20px;
+        #action-buttons {
             margin-top: 10px;
-            display: none;
         }
 
-        /* Right area: history */
-        #history-panel {
-            width: 250px;
-            border-left: 2px solid #ddd;
+        #info-panel {
+            width: 240px;
+            border-left: 2px solid #f0e0c0;
             padding-left: 20px;
         }
 
-        #history-panel h3 {
-            margin-top: 0;
+        .info-line {
+            font-size: 16px;
+            margin-bottom: 8px;
         }
 
         .history-entry {
-            padding: 5px;
-            border-bottom: 1px solid #ccc;
+            padding: 6px;
+            border-bottom: 1px dashed #ddd;
             font-size: 14px;
         }
 
-        .history-entry span {
-            display: block;
+        #game-over {
+            color: crimson;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
 
 <body>
     <div id="game-area">
-        <h2>Score: <span id="score">0</span></h2>
-        <div id="controls">
-            <button onclick="resetGame()">🔄 Reset Game</button>
-            <span id="timer">⏱ Time: 60</span>
+        <!-- Chế độ chơi -->
+        <div id="mode-buttons">
+            <button onclick="startCountdownMode()">🕛 Đếm Ngược</button>
+            <button onclick="startTimedMode()">⏱ Tính Giờ</button>
         </div>
+
+        <!-- Thông tin -->
+        <div class="info-line">⭐ Điểm: <span id="score">0</span></div>
+        <div class="info-line">⏱ Thời gian: <span id="timer">0</span> giây</div>
+        <div class="info-line">🔁 Đã đảo: <span id="shuffle-count">0</span> lần</div>
+
+        <!-- Bảng -->
         <div id="board-container">
             <table id="board"></table>
         </div>
-        <div id="game-over">⛔ Hết thời gian trò chơi kết thúc!</div>
+
+        <!-- Nút chức năng -->
+        <div id="action-buttons">
+            <button onclick="resetGame()">🔄 Reset</button>
+            <button onclick="undo()">↩️ Undo</button>
+            <button onclick="useHint()" title="Cộng thêm 10 giây">💡 Gợi ý</button>
+        </div>
+
+        <!-- Kết thúc -->
+        <div id="game-over">⛔ Hết thời gian, trò chơi kết thúc!</div>
     </div>
 
-    <div id="history-panel">
-        <h3>🎮 Lịch sử chơi</h3>
+    <div id="info-panel">
+        <h3>🎮 Lịch sử</h3>
         <div id="history"></div>
     </div>
 
+    <!-- Âm thanh -->
+    <audio id="clickSound" src="click_embed.mp3" preload="auto"></audio>
+
     <script>
         const ROWS = 10, COLS = 17;
-        let grid, score = 0, start = null;
+        let grid = [], score = 0, start = null, undoStack = [];
         let board = document.getElementById('board');
         let scoreEl = document.getElementById('score');
         let timerEl = document.getElementById('timer');
+        let shuffleEl = document.getElementById('shuffle-count');
         let gameOverEl = document.getElementById('game-over');
-        let timeLeft = 60;
-        let timerInterval;
         let historyEl = document.getElementById('history');
+        let clickSound = document.getElementById('clickSound');
+        let mode = "countdown", timer = null, time = 60, timedSeconds = 0, shuffleCount = 0;
 
         function generateGrid() {
             grid = Array.from({ length: ROWS }, () =>
@@ -151,42 +173,184 @@
             }
         }
 
-        function clearSelection() {
-            document.querySelectorAll('.cell.selected').forEach(td =>
-                td.classList.remove('selected')
-            );
+        function resetGame() {
+            if (score > 0) addToHistory();
+            generateGrid();
+            renderBoard();
+            score = 0;
+            scoreEl.innerText = score;
+            shuffleCount = 0;
+            shuffleEl.innerText = shuffleCount;
+            undoStack = [];
+            gameOverEl.style.display = 'none';
+            board.style.pointerEvents = 'auto';
+            clearInterval(timer);
+
+            if (mode === 'countdown') {
+                time = 60;
+                timerEl.innerText = time;
+                timer = setInterval(() => {
+                    time--;
+                    timerEl.innerText = time;
+                    if (time <= 0) {
+                        clearInterval(timer);
+                        endGame();
+                    }
+                }, 1000);
+            } else {
+                timedSeconds = 0;
+                timerEl.innerText = timedSeconds;
+                timer = setInterval(() => {
+                    timedSeconds++;
+                    timerEl.innerText = timedSeconds;
+                    if (!hasValidMove()) shuffleBoard();
+                    if (isBoardCleared()) {
+                        clearInterval(timer);
+                        gameOverEl.innerText = `🎉 Hoàn thành sau ${timedSeconds} giây!`;
+                        gameOverEl.style.display = 'block';
+                        board.style.pointerEvents = 'none';
+                        addToHistory();
+                    }
+                }, 1000);
+            }
         }
 
-        function handleMouseUp(e) {
+        function endGame() {
+            board.style.pointerEvents = 'none';
+            gameOverEl.style.display = 'block';
+            addToHistory();
+        }
+
+        function addToHistory() {
+            const entry = document.createElement('div');
+            entry.className = 'history-entry';
+            const now = new Date();
+            entry.innerHTML = `
+        <span>🕓 ${now.toLocaleTimeString()}</span>
+        <span>⭐ Điểm: ${score}</span>
+        <span>⏱ ${mode === "timed" ? `Hoàn thành: ${timedSeconds}s` : `Còn lại: ${time}s`}</span>
+      `;
+            historyEl.prepend(entry);
+        }
+
+        function isBoardCleared() {
+            return grid.flat().every(v => v === 0);
+        }
+
+        function hasValidMove() {
+            for (let r0 = 0; r0 < ROWS; r0++)
+                for (let c0 = 0; c0 < COLS; c0++)
+                    for (let r1 = r0; r1 < ROWS; r1++)
+                        for (let c1 = c0; c1 < COLS; c1++) {
+                            let sum = 0;
+                            for (let i = r0; i <= r1; i++)
+                                for (let j = c0; j <= c1; j++)
+                                    sum += grid[i][j];
+                            if (sum === 10) return true;
+                        }
+            return false;
+        }
+
+        function shuffleBoard() {
+            let attempts = 0;
+            const MAX_ATTEMPTS = 100;
+
+            while (attempts < MAX_ATTEMPTS) {
+                // Thay đổi giá trị ngẫu nhiên cho tất cả ô còn lại
+                for (let i = 0; i < ROWS; i++) {
+                    for (let j = 0; j < COLS; j++) {
+                        if (grid[i][j] !== 0) {
+                            grid[i][j] = 1 + Math.floor(Math.random() * 9);
+                        }
+                    }
+                }
+
+                // Kiểm tra nếu có nước đi hợp lệ thì dừng
+                if (hasValidMove()) break;
+
+                attempts++;
+            }
+
+            shuffleCount++;
+            shuffleEl.innerText = shuffleCount;
+            renderBoard();
+        }
+
+        function useHint() {
+            outer: for (let r0 = 0; r0 < ROWS; r0++)
+                for (let c0 = 0; c0 < COLS; c0++)
+                    for (let r1 = r0; r1 < ROWS; r1++)
+                        for (let c1 = c0; c1 < COLS; c1++) {
+                            let sum = 0;
+                            for (let i = r0; i <= r1; i++)
+                                for (let j = c0; j <= c1; j++)
+                                    sum += grid[i][j];
+                            if (sum === 10) {
+                                for (let i = r0; i <= r1; i++)
+                                    for (let j = c0; j <= c1; j++)
+                                        board.rows[i].cells[j].classList.add('selected');
+                                if (mode === 'timed') timedSeconds += 10;
+                                timerEl.innerText = timedSeconds;
+                                break outer;
+                            }
+                        }
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            const last = undoStack.pop();
+            grid = last.grid;
+            score = last.score;
+            scoreEl.innerText = score;
+            renderBoard();
+        }
+
+        function startCountdownMode() {
+            mode = "countdown";
+            resetGame();
+        }
+
+        function startTimedMode() {
+            mode = "timed";
+            resetGame();
+        }
+
+        board.addEventListener('mousedown', e => {
+            if (e.target.classList.contains('cell')) {
+                start = { r: +e.target.dataset.r, c: +e.target.dataset.c };
+                clearSelection();
+            }
+        });
+
+        board.addEventListener('mouseup', e => {
             if (!start || !e.target.classList.contains('cell')) return;
             const end = { r: +e.target.dataset.r, c: +e.target.dataset.c };
             const r0 = Math.min(start.r, end.r), r1 = Math.max(start.r, end.r);
             const c0 = Math.min(start.c, end.c), c1 = Math.max(start.c, end.c);
             let sum = 0, cells = [];
 
-            for (let i = r0; i <= r1; i++) {
+            for (let i = r0; i <= r1; i++)
                 for (let j = c0; j <= c1; j++) {
                     sum += grid[i][j];
                     cells.push(board.rows[i].cells[j]);
                 }
-            }
 
             if (sum === 10) {
-                for (let i = r0; i <= r1; i++) {
-                    for (let j = c0; j <= c1; j++) {
+                undoStack.push({ grid: grid.map(row => [...row]), score });
+                for (let i = r0; i <= r1; i++)
+                    for (let j = c0; j <= c1; j++)
                         grid[i][j] = 0;
-                    }
-                }
-                cells.forEach(td => td.innerText = '');
                 score += cells.length;
                 scoreEl.innerText = score;
+                renderBoard();
+                clickSound.play();
             }
 
             clearSelection();
             start = null;
-        }
+        });
 
-        function handleMouseMove(e) {
+        board.addEventListener('mousemove', e => {
             if (!start || !e.target.classList.contains('cell')) return;
             clearSelection();
             const cr = +e.target.dataset.r, cc = +e.target.dataset.c;
@@ -195,64 +359,15 @@
             for (let i = r0; i <= r1; i++)
                 for (let j = c0; j <= c1; j++)
                     board.rows[i].cells[j].classList.add('selected');
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 60;
-            timerEl.innerText = `⏱ Time: ${timeLeft}`;
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerEl.innerText = `⏱ Time: ${timeLeft}`;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function endGame() {
-            gameOverEl.style.display = 'block';
-            board.style.pointerEvents = 'none';
-            addToHistory(score, timeLeft);
-        }
-
-        function addToHistory(score, timeLeft) {
-            const entry = document.createElement('div');
-            entry.className = 'history-entry';
-            const now = new Date();
-            entry.innerHTML = `
-                <span>🕓 ${now.toLocaleTimeString()}</span>
-                <span>⭐ Điểm: ${score}</span>
-                <span>⏱ Còn: ${timeLeft}s</span>
-            `;
-            historyEl.prepend(entry); // newest on top
-        }
-
-        function resetGame() {
-            addToHistory(score, timeLeft);
-            generateGrid();
-            renderBoard();
-            score = 0;
-            scoreEl.innerText = score;
-            gameOverEl.style.display = 'none';
-            board.style.pointerEvents = 'auto';
-            startTimer();
-        }
-
-        // Event bindings
-        board.addEventListener('mousedown', e => {
-            if (e.target.classList.contains('cell')) {
-                start = { r: +e.target.dataset.r, c: +e.target.dataset.c };
-                clearSelection();
-            }
         });
 
-        board.addEventListener('mouseup', handleMouseUp);
-        board.addEventListener('mousemove', handleMouseMove);
+        function clearSelection() {
+            document.querySelectorAll('.cell.selected').forEach(td =>
+                td.classList.remove('selected')
+            );
+        }
 
-        // Start game
-        resetGame();
+        startCountdownMode(); // Khởi động mặc định
     </script>
 </body>
 
