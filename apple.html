@@ -1,10 +1,16 @@
+<!-- Fruit Box - Hỗ trợ di động hoàn chỉnh -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <title>Fruit Box</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             margin: 0;
             padding: 20px;
@@ -42,6 +48,9 @@
 
         #mode-buttons {
             margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         #board-container {
@@ -74,6 +83,9 @@
 
         #action-buttons {
             margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         #info-panel {
@@ -117,29 +129,54 @@
             border: 3px dashed #ccc;
             pointer-events: none;
         }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .cell {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 13px;
+                margin: 3px;
+            }
+
+            #board-container {
+                transform: scale(0.9);
+                transform-origin: top center;
+            }
+
+            #info-panel {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- Nội dung game -->
     <div id="game-area">
-        <!-- Chế độ chơi -->
         <div id="mode-buttons">
             <button onclick="startCountdownMode()">🕛 Đếm Ngược</button>
             <button onclick="startTimedMode()">⏱ Tính Giờ</button>
         </div>
 
-        <!-- Thông tin -->
         <div class="info-line">⭐ Điểm: <span id="score">0</span></div>
         <div class="info-line">⏱ Thời gian: <span id="timer">0</span> giây</div>
         <div class="info-line">🔁 Đã đảo: <span id="shuffle-count">0</span> lần</div>
 
-        <!-- Bảng -->
         <div id="board-container">
             <table id="board"></table>
             <div id="pause-overlay" style="display:none;"></div>
         </div>
 
-        <!-- Nút chức năng -->
         <div id="action-buttons">
             <button onclick="resetGame()">🔄 Reset</button>
             <button onclick="undo()">↩️ Undo</button>
@@ -148,7 +185,6 @@
             <button onclick="resumeGame()" id="resumeBtn" style="display:none;">▶️ Play</button>
         </div>
 
-        <!-- Kết thúc -->
         <div id="game-over">⛔ Hết thời gian, trò chơi kết thúc!</div>
     </div>
 
@@ -157,9 +193,9 @@
         <div id="history"></div>
     </div>
 
-    <!-- Âm thanh -->
     <audio id="clickSound" src="click_embed.mp3" preload="auto"></audio>
 
+    <!-- SCRIPT (tối ưu mobile) -->
     <script>
         const ROWS = 10, COLS = 18;
         let grid = [], score = 0, start = null, undoStack = [];
@@ -239,6 +275,21 @@
             }
         }
 
+        function pauseGame() {
+            paused = true;
+            board.style.pointerEvents = 'none';
+            document.getElementById('resumeBtn').style.display = 'inline-block';
+            document.getElementById('pause-overlay').style.display = 'block';
+            document.getElementById('pause-overlay').innerText = '⏸ Tạm dừng';
+        }
+
+        function resumeGame() {
+            paused = false;
+            board.style.pointerEvents = 'auto';
+            document.getElementById('resumeBtn').style.display = 'none';
+            document.getElementById('pause-overlay').style.display = 'none';
+        }
+
         function endGame() {
             board.style.pointerEvents = 'none';
             gameOverEl.style.display = 'block';
@@ -252,8 +303,7 @@
             entry.innerHTML = `
         <span>🕓 ${now.toLocaleTimeString()}</span>
         <span>⭐ Điểm: ${score}</span>
-        <span>⏱ ${mode === "timed" ? `Hoàn thành: ${timedSeconds}s` : `Còn lại: ${time}s`}</span>
-      `;
+        <span>⏱ ${mode === "timed" ? `Hoàn thành: ${timedSeconds}s` : `Còn lại: ${time}s`}</span>`;
             historyEl.prepend(entry);
         }
 
@@ -277,24 +327,13 @@
 
         function shuffleBoard() {
             let attempts = 0;
-            const MAX_ATTEMPTS = 100;
-
-            while (attempts < MAX_ATTEMPTS) {
-                // Thay đổi giá trị ngẫu nhiên cho tất cả ô còn lại
-                for (let i = 0; i < ROWS; i++) {
-                    for (let j = 0; j < COLS; j++) {
-                        if (grid[i][j] !== 0) {
+            while (attempts++ < 100) {
+                for (let i = 0; i < ROWS; i++)
+                    for (let j = 0; j < COLS; j++)
+                        if (grid[i][j] !== 0)
                             grid[i][j] = 1 + Math.floor(Math.random() * 9);
-                        }
-                    }
-                }
-
-                // Kiểm tra nếu có nước đi hợp lệ thì dừng
                 if (hasValidMove()) break;
-
-                attempts++;
             }
-
             shuffleCount++;
             shuffleEl.innerText = shuffleCount;
             renderBoard();
@@ -339,39 +378,12 @@
             resetGame();
         }
 
+        // Mouse support
         board.addEventListener('mousedown', e => {
             if (e.target.classList.contains('cell')) {
                 start = { r: +e.target.dataset.r, c: +e.target.dataset.c };
                 clearSelection();
             }
-        });
-
-        board.addEventListener('mouseup', e => {
-            if (!start || !e.target.classList.contains('cell')) return;
-            const end = { r: +e.target.dataset.r, c: +e.target.dataset.c };
-            const r0 = Math.min(start.r, end.r), r1 = Math.max(start.r, end.r);
-            const c0 = Math.min(start.c, end.c), c1 = Math.max(start.c, end.c);
-            let sum = 0, cells = [];
-
-            for (let i = r0; i <= r1; i++)
-                for (let j = c0; j <= c1; j++) {
-                    sum += grid[i][j];
-                    cells.push(board.rows[i].cells[j]);
-                }
-
-            if (sum === 10) {
-                undoStack.push({ grid: grid.map(row => [...row]), score });
-                for (let i = r0; i <= r1; i++)
-                    for (let j = c0; j <= c1; j++)
-                        grid[i][j] = 0;
-                score += cells.length;
-                scoreEl.innerText = score;
-                renderBoard();
-                clickSound.play();
-            }
-
-            clearSelection();
-            start = null;
         });
 
         board.addEventListener('mousemove', e => {
@@ -385,25 +397,72 @@
                     board.rows[i].cells[j].classList.add('selected');
         });
 
+        board.addEventListener('mouseup', e => {
+            if (!start || !e.target.classList.contains('cell')) return;
+            const end = { r: +e.target.dataset.r, c: +e.target.dataset.c };
+            handleSelection(start, end);
+            start = null;
+        });
+
+        // Touch support
+        board.addEventListener('touchstart', e => {
+            const touch = e.touches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (el && el.classList.contains('cell')) {
+                start = { r: +el.dataset.r, c: +el.dataset.c };
+                clearSelection();
+            }
+        });
+
+        board.addEventListener('touchmove', e => {
+            const touch = e.touches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (el && el.classList.contains('cell') && start) {
+                clearSelection();
+                const cr = +el.dataset.r, cc = +el.dataset.c;
+                const r0 = Math.min(start.r, cr), r1 = Math.max(start.r, cr);
+                const c0 = Math.min(start.c, cc), c1 = Math.max(start.c, cc);
+                for (let i = r0; i <= r1; i++)
+                    for (let j = c0; j <= c1; j++)
+                        board.rows[i].cells[j].classList.add('selected');
+            }
+        }, { passive: false });
+
+        board.addEventListener('touchend', e => {
+            const touch = e.changedTouches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (!start || !el || !el.classList.contains('cell')) return;
+            const end = { r: +el.dataset.r, c: +el.dataset.c };
+            handleSelection(start, end);
+            start = null;
+        });
+
+        function handleSelection(start, end) {
+            const r0 = Math.min(start.r, end.r), r1 = Math.max(start.r, end.r);
+            const c0 = Math.min(start.c, end.c), c1 = Math.max(start.c, end.c);
+            let sum = 0, cells = [];
+            for (let i = r0; i <= r1; i++)
+                for (let j = c0; j <= c1; j++) {
+                    sum += grid[i][j];
+                    cells.push(board.rows[i].cells[j]);
+                }
+            if (sum === 10) {
+                undoStack.push({ grid: grid.map(row => [...row]), score });
+                for (let i = r0; i <= r1; i++)
+                    for (let j = c0; j <= c1; j++)
+                        grid[i][j] = 0;
+                score += cells.length;
+                scoreEl.innerText = score;
+                renderBoard();
+                clickSound.play();
+            }
+            clearSelection();
+        }
+
         function clearSelection() {
             document.querySelectorAll('.cell.selected').forEach(td =>
                 td.classList.remove('selected')
             );
-        }
-
-        function pauseGame() {
-            paused = true;
-            board.style.pointerEvents = 'none';
-            document.getElementById('resumeBtn').style.display = 'inline-block';
-            document.getElementById('pause-overlay').style.display = 'block';
-            document.getElementById('pause-overlay').innerText = '⏸ Tạm dừng';
-        }
-
-        function resumeGame() {
-            paused = false;
-            board.style.pointerEvents = 'auto';
-            document.getElementById('resumeBtn').style.display = 'none';
-            document.getElementById('pause-overlay').style.display = 'none';
         }
 
         startCountdownMode(); // Khởi động mặc định
