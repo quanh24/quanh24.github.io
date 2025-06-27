@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fruit Box</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+            font-family: sans-serif;
+            user-select: none;
+            background: #fdfdfd;
+            box-sizing: border-box;
+        }
+
+        /* Left area: game UI */
+        #game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        #board-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        #board {
+            border: 1px solid #333;
+            cursor: crosshair;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 30px;
+            border: 1px solid #ccc;
+            font-weight: bold;
+        }
+
+        .selected {
+            background: rgba(255, 200, 0, 0.5);
+        }
+
+        h2,
+        #controls {
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        #game-over {
+            color: red;
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Right area: history */
+        #history-panel {
+            width: 250px;
+            border-left: 2px solid #ddd;
+            padding-left: 20px;
+        }
+
+        #history-panel h3 {
+            margin-top: 0;
+        }
+
+        .history-entry {
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .history-entry span {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-area">
+        <h2>Score: <span id="score">0</span></h2>
+        <div id="controls">
+            <button onclick="resetGame()">🔄 Reset Game</button>
+            <span id="timer">⏱ Time: 60</span>
+        </div>
+        <div id="board-container">
+            <table id="board"></table>
+        </div>
+        <div id="game-over">⛔ Hết thời gian trò chơi kết thúc!</div>
+    </div>
+
+    <div id="history-panel">
+        <h3>🎮 Lịch sử chơi</h3>
+        <div id="history"></div>
+    </div>
+
+    <script>
+        const ROWS = 10, COLS = 17;
+        let grid, score = 0, start = null;
+        let board = document.getElementById('board');
+        let scoreEl = document.getElementById('score');
+        let timerEl = document.getElementById('timer');
+        let gameOverEl = document.getElementById('game-over');
+        let timeLeft = 60;
+        let timerInterval;
+        let historyEl = document.getElementById('history');
+
+        function generateGrid() {
+            grid = Array.from({ length: ROWS }, () =>
+                Array.from({ length: COLS }, () => 1 + Math.floor(Math.random() * 9))
+            );
+        }
+
+        function renderBoard() {
+            board.innerHTML = '';
+            for (let i = 0; i < ROWS; i++) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < COLS; j++) {
+                    const td = document.createElement('td');
+                    td.className = 'cell';
+                    td.dataset.r = i;
+                    td.dataset.c = j;
+                    td.innerText = grid[i][j] === 0 ? '' : grid[i][j];
+                    tr.appendChild(td);
+                }
+                board.appendChild(tr);
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.cell.selected').forEach(td =>
+                td.classList.remove('selected')
+            );
+        }
+
+        function handleMouseUp(e) {
+            if (!start || !e.target.classList.contains('cell')) return;
+            const end = { r: +e.target.dataset.r, c: +e.target.dataset.c };
+            const r0 = Math.min(start.r, end.r), r1 = Math.max(start.r, end.r);
+            const c0 = Math.min(start.c, end.c), c1 = Math.max(start.c, end.c);
+            let sum = 0, cells = [];
+
+            for (let i = r0; i <= r1; i++) {
+                for (let j = c0; j <= c1; j++) {
+                    sum += grid[i][j];
+                    cells.push(board.rows[i].cells[j]);
+                }
+            }
+
+            if (sum === 10) {
+                for (let i = r0; i <= r1; i++) {
+                    for (let j = c0; j <= c1; j++) {
+                        grid[i][j] = 0;
+                    }
+                }
+                cells.forEach(td => td.innerText = '');
+                score += cells.length;
+                scoreEl.innerText = score;
+            }
+
+            clearSelection();
+            start = null;
+        }
+
+        function handleMouseMove(e) {
+            if (!start || !e.target.classList.contains('cell')) return;
+            clearSelection();
+            const cr = +e.target.dataset.r, cc = +e.target.dataset.c;
+            const r0 = Math.min(start.r, cr), r1 = Math.max(start.r, cr);
+            const c0 = Math.min(start.c, cc), c1 = Math.max(start.c, cc);
+            for (let i = r0; i <= r1; i++)
+                for (let j = c0; j <= c1; j++)
+                    board.rows[i].cells[j].classList.add('selected');
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            timerEl.innerText = `⏱ Time: ${timeLeft}`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = `⏱ Time: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameOverEl.style.display = 'block';
+            board.style.pointerEvents = 'none';
+            addToHistory(score, timeLeft);
+        }
+
+        function addToHistory(score, timeLeft) {
+            const entry = document.createElement('div');
+            entry.className = 'history-entry';
+            const now = new Date();
+            entry.innerHTML = `
+                <span>🕓 ${now.toLocaleTimeString()}</span>
+                <span>⭐ Điểm: ${score}</span>
+                <span>⏱ Còn: ${timeLeft}s</span>
+            `;
+            historyEl.prepend(entry); // newest on top
+        }
+
+        function resetGame() {
+            addToHistory(score, timeLeft);
+            generateGrid();
+            renderBoard();
+            score = 0;
+            scoreEl.innerText = score;
+            gameOverEl.style.display = 'none';
+            board.style.pointerEvents = 'auto';
+            startTimer();
+        }
+
+        // Event bindings
+        board.addEventListener('mousedown', e => {
+            if (e.target.classList.contains('cell')) {
+                start = { r: +e.target.dataset.r, c: +e.target.dataset.c };
+                clearSelection();
+            }
+        });
+
+        board.addEventListener('mouseup', handleMouseUp);
+        board.addEventListener('mousemove', handleMouseMove);
+
+        // Start game
+        resetGame();
+    </script>
+</body>
+
+</html>

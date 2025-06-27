@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đếm Ngày Yêu</title>
+    <style>
+        body {
+            -webkit-user-select: none;
+            /* Safari */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+            user-select: none;
+            /* Standard */
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fff0f5;
+            text-align: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #e91e63;
+            margin-bottom: 10px;
+        }
+
+        #startTime,
+        #loveDays {
+            font-size: 1.4em;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        #clock {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.8em;
+            margin: 15px 0;
+            color: #ff4081;
+            flex-wrap: wrap;
+        }
+
+        .unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+
+        .value {
+            font-size: 2em;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .label {
+            font-size: 0.7em;
+            color: #888;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .person {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .couple-img {
+            width: 220px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 4px solid #e91e63;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .name {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #d81b60;
+            font-weight: bold;
+        }
+
+        /* Heart Falling Effect */
+        .heart {
+            position: fixed;
+            top: -20px;
+            color: #e91e63;
+            font-size: 20px;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes burstHeart {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>💖 Kỷ niệm tình yêu 💖</h1>
+    <p id="startTime"></p>
+    <p id="loveDays"></p>
+
+    <div id="clock">
+        <div class="unit">
+            <div id="days" class="value">0</div>
+            <div class="label">Ngày</div>
+        </div>
+        <div class="unit">
+            <div id="hours" class="value">00</div>
+            <div class="label">Giờ</div>
+        </div>
+        <div class="unit">
+            <div id="minutes" class="value">00</div>
+            <div class="label">Phút</div>
+        </div>
+        <div class="unit">
+            <div id="seconds" class="value">00</div>
+            <div class="label">Giây</div>
+        </div>
+    </div>
+
+    <div class="image-container">
+        <div class="person">
+            <img src="https://media.discordapp.net/attachments/1168935758778876047/1388084242017288324/IMG_3088.jpg?ex=685fb1b0&is=685e6030&hm=303ad251b945efd7cf49ae72e214ac66636d3359eeeac4f1b5fa0848981ca3c2&=&format=webp&width=450&height=600"
+                alt="Quanh" class="couple-img">
+            <div class="name">Phạm Quang Anh</div>
+        </div>
+        <div class="person">
+            <img src="https://cdn.discordapp.com/attachments/1168935758778876047/1388084242470408263/20250210_202834_929.jpg?ex=685fb1b0&is=685e6030&hm=f7cb135829744b18d67d8763551fb5d39e726dcdb9e235a3cba90eaf94ae5ac6&"
+                alt="Liin" class="couple-img">
+            <div class="name">Ngô Thị Diệu Linh</div>
+        </div>
+    </div>
+
+    <script>
+        const startDate = new Date(2024, 10, 6, 2, 30);
+
+        function updateLoveTime() {
+            const now = new Date();
+            const diffTime = now - startDate;
+
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffTime / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diffTime / (1000 * 60)) % 60);
+            const seconds = Math.floor((diffTime / 1000) % 60);
+
+            const startText = startDate.toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
+
+            document.getElementById("startTime").innerText = `Bắt đầu yêu từ: ${startText}`;
+            document.getElementById("loveDays").innerText = `Hôm nay là ngày thứ ${days + 1} kể từ khi yêu nhau ❤️`;
+
+            document.getElementById("days").innerText = days;
+            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+        }
+
+        updateLoveTime();
+        setInterval(updateLoveTime, 1000);
+
+        // Falling Heart Effect
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerText = '💗';
+            heart.style.left = Math.random() * window.innerWidth + 'px';
+            heart.style.animationDuration = 3 + Math.random() * 2 + 's';
+            heart.style.fontSize = 16 + Math.random() * 12 + 'px';
+            document.body.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 5000);
+        }
+
+        setInterval(createHeart, 300);
+
+        document.addEventListener('click', function (e) {
+            for (let i = 0; i < 8; i++) {
+                const burst = document.createElement('div');
+                burst.className = 'heart';
+                burst.innerText = '💖';
+                burst.style.left = `${e.clientX}px`;
+                burst.style.top = `${e.clientY}px`;
+                burst.style.position = 'fixed';
+                burst.style.animation = `burstHeart 700ms ease-out forwards`;
+                burst.style.transform = `rotate(${Math.random() * 360}deg)`;
+                burst.style.fontSize = `${14 + Math.random() * 10}px`;
+                document.body.appendChild(burst);
+
+                const angle = (Math.PI * 2 / 8) * i;
+                const radius = 60 + Math.random() * 30;
+                const dx = Math.cos(angle) * radius;
+                const dy = Math.sin(angle) * radius;
+
+                burst.animate([
+                    { transform: `translate(0, 0) scale(1)`, opacity: 1 },
+                    { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 700,
+                    easing: 'ease-out'
+                });
+
+                setTimeout(() => burst.remove(), 800);
+            }
+        })
+    </script>
+
+</body>
+
+</html>

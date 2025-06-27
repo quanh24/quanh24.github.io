@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Game</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts for a playful look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* Custom styles to apply the fonts and add some flair */
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF7E6;
+            /* Soft pastel yellow from original */
+        }
+
+        .font-title {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Animation for feedback messages */
+        @keyframes pop-in {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            80% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .pop-in {
+            animation: pop-in 0.5s ease-out forwards;
+        }
+
+        /* Animation for stars at the end */
+        @keyframes star-grow {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .star {
+            display: inline-block;
+            animation: star-grow 0.6s ease-out forwards;
+            animation-delay: var(--delay);
+        }
+    </style>
+</head>
+
+<body class="bg-yellow-50 text-gray-800 flex items-center justify-center min-h-screen p-2 sm:p-4">
+
+    <div id="game-container"
+        class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-4 sm:p-6 text-center transition-all duration-500">
+
+        <!-- Setup Screen -->
+        <div id="setup-screen">
+            <h1 class="font-title text-3xl sm:text-4xl md:text-5xl text-orange-500 mb-2 sm:mb-4">Math Game!</h1>
+
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Level Selection -->
+                <div>
+                    <h2 class="font-title text-xl sm:text-2xl text-cyan-600 mb-3">1. Chọn Level</h2>
+                    <div id="level-buttons" class="flex flex-wrap justify-center gap-2 sm:gap-3">
+                        <button data-level="6"
+                            class="level-btn bg-green-400 hover:bg-green-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Dễ</button>
+                        <button data-level="7"
+                            class="level-btn bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Thường</button>
+                        <button data-level="8"
+                            class="level-btn bg-red-400 hover:bg-red-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Khó</button>
+                    </div>
+                </div>
+
+                <!-- Operation Selection -->
+                <div>
+                    <h2 class="font-title text-xl sm:text-2xl text-cyan-600 mb-3">2. Chọn thử thách</h2>
+                    <div id="operation-buttons" class="flex flex-wrap justify-center gap-2 sm:gap-3">
+                        <button data-op="add"
+                            class="op-btn bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Cộng</button>
+                        <button data-op="sub"
+                            class="op-btn bg-purple-400 hover:bg-purple-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Trừ</button>
+                        <button data-op="both"
+                            class="op-btn bg-pink-400 hover:bg-pink-500 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full text-base sm:text-lg transition-transform hover:scale-105">Cả 2</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen (Initially Hidden) -->
+        <div id="game-screen" class="hidden">
+            <header class="mb-2 sm:mb-4">
+                <p id="problem-counter" class="font-title text-lg sm:text-xl text-gray-500">Problem 1 of 10</p>
+                <div class="w-full bg-gray-200 rounded-full h-3 sm:h-4 mt-2">
+                    <div id="progress-bar" class="bg-green-500 h-3 sm:h-4 rounded-full transition-all duration-300"
+                        style="width: 10%;"></div>
+                </div>
+            </header>
+
+            <main>
+                <!-- Problem Display -->
+                <div id="problem-display" class="my-2 md:my-4 text-6xl md:text-7xl font-bold">
+                    <span id="num1" class="text-blue-500"></span>
+                    <span id="operator" class="text-red-500 mx-2 sm:mx-4"></span>
+                    <span id="num2" class="text-green-500"></span>
+                </div>
+
+                <!-- Visual Clue Area -->
+                <div id="visual-clue"
+                    class="min-h-[100px] sm:min-h-[120px] bg-blue-100 rounded-lg p-2 flex justify-center items-center mb-3">
+                    <!-- Dots will be generated here by JS -->
+                </div>
+
+                <!-- Answer Display -->
+                <div id="answer-display"
+                    class="w-full bg-yellow-100 text-orange-600 text-5xl md:text-6xl font-bold rounded-lg h-20 md:h-24 flex items-center justify-center mb-3 border-4 border-yellow-200">
+                </div>
+
+                <!-- Numpad -->
+                <div id="numpad" class="grid grid-cols-3 gap-2 max-w-sm mx-auto mb-3">
+                    <!-- Numpad buttons will be generated here -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="action-buttons" class="h-16 md:h-20 flex items-center justify-center">
+                    <button id="hear-btn"
+                        class="bg-yellow-400 text-white rounded-full h-14 w-14 sm:h-16 sm:w-16 flex items-center justify-center text-3xl shadow-lg transition-transform hover:scale-110">🔊</button>
+                    <button id="next-btn"
+                        class="hidden bg-green-500 hover:bg-green-600 text-white font-title text-2xl sm:text-3xl py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transition-transform hover:scale-105">Next</button>
+                </div>
+
+                <!-- Feedback Message Area -->
+                <div id="feedback-message" class="mt-1 text-2xl md:text-3xl font-bold h-8 md:h-10"></div>
+            </main>
+        </div>
+
+        <!-- End Screen (Initially Hidden) -->
+        <div id="end-screen" class="hidden">
+            <h1 id="end-title" class="font-title text-4xl md:text-5xl text-orange-500 mb-4">Game Over!</h1>
+            <p id="end-score-text" class="text-xl md:text-2xl text-gray-700 mb-4"></p>
+            <div id="star-chart" class="text-5xl md:text-6xl mb-6">
+                <!-- Stars will be generated here -->
+            </div>
+            <p id="end-message" class="text-xl md:text-2xl font-bold text-cyan-600 mb-6"></p>
+            <button id="play-again-btn"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-title text-2xl md:text-3xl py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transition-transform hover:scale-105">Play
+                Again</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+
+        const levelButtons = document.getElementById('level-buttons');
+        const operationButtons = document.getElementById('operation-buttons');
+
+        const progressBar = document.getElementById('progress-bar');
+        const problemCounter = document.getElementById('problem-counter');
+        const num1El = document.getElementById('num1');
+        const operatorEl = document.getElementById('operator');
+        const num2El = document.getElementById('num2');
+
+        const visualClue = document.getElementById('visual-clue');
+        const answerDisplay = document.getElementById('answer-display');
+        const numpad = document.getElementById('numpad');
+        const hearBtn = document.getElementById('hear-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        const endTitle = document.getElementById('end-title');
+        const endScoreText = document.getElementById('end-score-text');
+        const starChart = document.getElementById('star-chart');
+        const endMessage = document.getElementById('end-message');
+        const playAgainBtn = document.getElementById('play-again-btn');
+
+        // --- Game State & Settings ---
+        let level, operation, maxNumber, gridWidth;
+        let score = 0;
+        let problemCount = 0;
+        const TOTAL_PROBLEMS = 10;
+        let currentProblem = {};
+
+        const POSITIVE_FEEDBACK = ["Great job!", "Awesome!", "You did it!", "Fantastic!", "Super!"];
+        const ENCOURAGEMENT = ["Oops! Try again!", "Almost!", "Keep going!", "You can do it!"];
+
+        // --- Web Speech API ---
+        const synth = window.speechSynthesis;
+        let voices = [];
+
+        function populateVoiceList() {
+            voices = synth.getVoices();
+        }
+        populateVoiceList();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoiceList;
+        }
+
+        function speak(text) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            const kidVoice = voices.find(voice => voice.name.includes('Google US English') || voice.name.includes('Zoe'));
+            if (kidVoice) utterance.voice = kidVoice;
+            utterance.pitch = 1.2;
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+
+        // --- Game Setup ---
+        function initializeNumpad() {
+            const buttons = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '✓'];
+            buttons.forEach(char => {
+                const button = document.createElement('button');
+                button.textContent = char;
+                button.className = 'text-3xl md:text-4xl font-bold py-2 md:py-3 rounded-lg shadow-md transition-transform hover:scale-105';
+                if (char === 'C') {
+                    button.className += ' bg-red-400 hover:bg-red-500 text-white';
+                    button.onclick = () => { answerDisplay.textContent = ''; };
+                } else if (char === '✓') {
+                    button.className += ' bg-green-500 hover:bg-green-600 text-white';
+                    button.onclick = checkAnswer;
+                } else {
+                    button.className += ' bg-gray-200 hover:bg-gray-300';
+                    button.onclick = () => { if (answerDisplay.textContent.length < 3) answerDisplay.textContent += char; };
+                }
+                numpad.appendChild(button);
+            });
+        }
+
+        levelButtons.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            level = e.target.dataset.level;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('ring-4', 'ring-offset-2', 'ring-cyan-500'));
+            e.target.classList.add('ring-4', 'ring-offset-2', 'ring-cyan-500');
+            checkStartGame();
+        });
+
+        operationButtons.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            operation = e.target.dataset.op;
+            document.querySelectorAll('.op-btn').forEach(btn => btn.classList.remove('ring-4', 'ring-offset-2', 'ring-cyan-500'));
+            e.target.classList.add('ring-4', 'ring-offset-2', 'ring-cyan-500');
+            checkStartGame();
+        });
+
+        function checkStartGame() {
+            if (level && operation) {
+                setTimeout(startGame, 300);
+            }
+        }
+
+        function startGame() {
+            if (level === '6') { maxNumber = 9; gridWidth = 3; }
+            else if (level === '7') { maxNumber = 16; gridWidth = 4; }
+            else { maxNumber = 25; gridWidth = 5; }
+
+            score = 0;
+            problemCount = 0;
+
+            setupScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            nextProblem();
+        }
+
+        // --- Game Logic ---
+        function generateProblem() {
+            let op;
+            if (operation === 'add') op = '+';
+            else if (operation === 'sub') op = '-';
+            else op = Math.random() < 0.5 ? '+' : '-';
+
+            let num1 = Math.floor(Math.random() * maxNumber) + 1;
+            let num2 = Math.floor(Math.random() * maxNumber) + 1;
+            let answer;
+
+            if (op === '-') {
+                if (num1 < num2) [num1, num2] = [num2, num1];
+                answer = num1 - num2;
+            } else {
+                answer = num1 + num2;
+            }
+
+            currentProblem = { num1, num2, op, answer };
+        }
+
+        function nextProblem() {
+            if (problemCount >= TOTAL_PROBLEMS) {
+                endGame();
+                return;
+            }
+            problemCount++;
+
+            generateProblem();
+            updateUI();
+
+            setTimeout(() => {
+                const opWord = currentProblem.op === '+' ? 'plus' : 'minus';
+                speak(`What is ${currentProblem.num1} ${opWord} ${currentProblem.num2}?`);
+            }, 500);
+        }
+
+        function updateUI() {
+            feedbackMessage.textContent = '';
+            answerDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            hearBtn.classList.remove('hidden');
+
+            problemCounter.textContent = `Problem ${problemCount} of ${TOTAL_PROBLEMS}`;
+            progressBar.style.width = `${(problemCount / TOTAL_PROBLEMS) * 100}%`;
+            num1El.textContent = currentProblem.num1;
+            operatorEl.textContent = currentProblem.op;
+            operatorEl.className = currentProblem.op === '+' ? 'text-red-500 mx-2 sm:mx-4' : 'text-purple-500 mx-2 sm:mx-4';
+            num2El.textContent = currentProblem.num2;
+
+            drawVisualClue();
+        }
+
+        function drawVisualClue() {
+            visualClue.innerHTML = '';
+            const { num1, num2, op } = currentProblem;
+
+            if (op === '+') {
+                const group1 = createDotGroup(num1, 'bg-blue-500');
+                const group2 = createDotGroup(num2, 'bg-green-500');
+                const operatorEl = document.createElement('div');
+                operatorEl.textContent = '+';
+                operatorEl.className = 'text-3xl sm:text-4xl font-bold text-red-500 mx-2 sm:mx-4';
+                visualClue.append(group1, operatorEl, group2);
+            } else {
+                const group = createDotGroup(num1, 'bg-blue-500', num2);
+                visualClue.append(group);
+            }
+        }
+
+        function createDotGroup(count, colorClass, crossedOutCount = 0) {
+            const group = document.createElement('div');
+            group.className = `grid gap-1 items-center justify-center`;
+            group.style.gridTemplateColumns = `repeat(${Math.min(count, gridWidth)}, 1fr)`;
+
+            for (let i = 0; i < count; i++) {
+                const dot = document.createElement('div');
+                dot.className = `w-6 h-6 sm:w-7 sm:h-7 rounded-full ${colorClass} flex items-center justify-center`;
+                if (i >= count - crossedOutCount) {
+                    dot.innerHTML = `<span class="text-red-500 text-3xl sm:text-4xl font-bold">×</span>`;
+                    dot.classList.add('opacity-50');
+                }
+                group.appendChild(dot);
+            }
+            return group;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(answerDisplay.textContent);
+            if (isNaN(userAnswer)) return;
+
+            if (userAnswer === currentProblem.answer) {
+                score++;
+                showFeedback(true);
+                hearBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+            } else {
+                showFeedback(false);
+                setTimeout(() => {
+                    answerDisplay.textContent = '';
+                }, 800);
+            }
+        }
+
+        function showFeedback(isCorrect) {
+            let message, colorClass;
+            if (isCorrect) {
+                message = POSITIVE_FEEDBACK[Math.floor(Math.random() * POSITIVE_FEEDBACK.length)];
+                colorClass = 'text-purple-600';
+            } else {
+                message = ENCOURAGEMENT[Math.floor(Math.random() * ENCOURAGEMENT.length)];
+                colorClass = 'text-orange-500';
+            }
+            feedbackMessage.textContent = message;
+            feedbackMessage.className = `mt-1 text-2xl md:text-3xl font-bold h-8 md:h-10 pop-in ${colorClass}`;
+            speak(message);
+            setTimeout(() => feedbackMessage.classList.remove('pop-in'), 500);
+        }
+
+        function endGame() {
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+
+            endScoreText.textContent = `You got ${score} out of ${TOTAL_PROBLEMS} correct!`;
+
+            starChart.innerHTML = '';
+            for (let i = 0; i < TOTAL_PROBLEMS; i++) {
+                const star = document.createElement('span');
+                star.textContent = i < score ? '🌟' : '☆';
+                star.className = 'star';
+                star.style.setProperty('--delay', `${i * 0.1}s`);
+                starChart.appendChild(star);
+            }
+
+            if (score === TOTAL_PROBLEMS) {
+                endMessage.textContent = "Perfect! You're a Math Star!";
+                endTitle.textContent = "Amazing Job!";
+            } else if (score >= TOTAL_PROBLEMS / 2) {
+                endMessage.textContent = "Great effort! Keep practicing!";
+            } else {
+                endMessage.textContent = "Good try! Practice makes perfect!";
+            }
+        }
+
+        function resetGame() {
+            level = null;
+            operation = null;
+            document.querySelectorAll('.level-btn, .op-btn').forEach(btn => btn.classList.remove('ring-4', 'ring-offset-2', 'ring-cyan-500'));
+            endScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+        hearBtn.addEventListener('click', () => {
+            const opWord = currentProblem.op === '+' ? 'plus' : 'minus';
+            speak(`What is ${currentProblem.num1} ${opWord} ${currentProblem.num2}?`);
+        });
+        nextBtn.addEventListener('click', nextProblem);
+        playAgainBtn.addEventListener('click', resetGame);
+
+        // --- Initialize Game ---
+        initializeNumpad();
+
+    </script>
+</body>
+
+</html>

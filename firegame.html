@@ -1,0 +1,690 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire game</title>
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Press Start 2P', cursive;
+            /* Retro arcade font */
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            cursor: default;
+        }
+
+        /* Import Google Font for a retro feel */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        /* --- Game Container --- */
+        #game-area {
+            width: 800px;
+            /* Fixed width for game field */
+            height: 600px;
+            /* Fixed height for game field */
+            background: linear-gradient(to bottom, #0a0a0f, #1a1a2e);
+            /* Deep space gradient */
+            border: 3px solid #00ffff;
+            /* Cyberpunk glow border */
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+            /* Keep game elements inside */
+            border-radius: 8px;
+            /* Slightly rounded corners */
+            display: flex;
+            /* For centering content within the game area */
+            flex-direction: column;
+            justify-content: space-between;
+            /* Push score to top, player to bottom */
+        }
+
+        /* --- UI Elements (Score, Health, Game Over) --- */
+        #score-board,
+        #game-over-screen,
+        #start-screen {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            z-index: 100;
+            /* Always on top */
+        }
+
+        #score-board {
+            top: 10px;
+            padding: 10px;
+            font-size: 1.2em;
+            color: #00ff00;
+            /* Green for health/score */
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent background */
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        #game-over-screen,
+        #start-screen {
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #ff0000;
+            /* Red for game over */
+            display: none;
+            /* Hidden by default */
+            border-radius: 8px;
+        }
+
+        #start-screen h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        #game-over-screen h2 {
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 1.5em;
+            margin-top: 10px;
+            color: #ffff00;
+            /* Yellow for final score */
+        }
+
+        .restart-button,
+        .start-button {
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 30px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .restart-button:hover,
+        .start-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .restart-button:active,
+        .start-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+        }
+
+        /* --- Player Spaceship --- */
+        #player {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #8888ff;
+            /* Blue ship */
+            border-radius: 50%;
+            /* Basic round shape */
+            bottom: 20px;
+            /* Position at the bottom */
+            left: calc(50% - 30px);
+            /* Center horizontally */
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            color: #fff;
+            text-shadow: 0 0 5px #fff;
+            box-shadow: 0 0 15px #8888ff, 0 0 30px rgba(136, 136, 255, 0.5);
+            /* Glow effect */
+            transition: left 0.05s linear;
+            /* Smooth horizontal movement */
+        }
+
+        /* Add a simple triangular top for the ship effect */
+        #player::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            /* Position above the circle */
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #8888ff;
+            /* Same color as ship */
+        }
+
+        /* --- Projectiles (Lasers) --- */
+        .projectile {
+            position: absolute;
+            width: 5px;
+            height: 20px;
+            background-color: #ff00ff;
+            /* Magenta laser */
+            border-radius: 2px;
+            z-index: 40;
+            box-shadow: 0 0 8px #ff00ff;
+            /* Laser glow */
+        }
+
+        /* --- Asteroids (Enemies) --- */
+        .asteroid {
+            position: absolute;
+            background-color: #a0a0a0;
+            /* Grey asteroid */
+            border-radius: 50%;
+            z-index: 30;
+            box-shadow: 0 0 10px rgba(160, 160, 160, 0.5);
+            /* Initial size, will be varied by JS */
+            width: 40px;
+            height: 40px;
+            /* Simple rocky texture via radial gradient */
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #808080 60%, #606060);
+        }
+
+        /* --- Explosion Effect (for hit asteroids) --- */
+        .explosion {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #ffaa00;
+            /* Orange-yellow fire */
+            border-radius: 50%;
+            opacity: 0;
+            animation: explode 0.3s ease-out forwards;
+            /* Short explosion animation */
+            z-index: 60;
+            box-shadow: 0 0 20px #ffaa00;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- Mobile Controls (Touch) --- */
+        #mobile-controls {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 101;
+            /* Above game elements */
+            display: none;
+            /* Hidden by default, shown on small screens */
+        }
+
+        .mobile-button {
+            padding: 15px 25px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            flex: 1;
+            /* Distribute space */
+            margin: 0 5px;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .mobile-button:active {
+            background-color: #0056b3;
+            transform: scale(0.98);
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 800px) {
+            #game-area {
+                width: 100vw;
+                /* Full viewport width */
+                height: 100vh;
+                /* Full viewport height */
+                border: none;
+                /* Remove border for full screen */
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            #score-board {
+                font-size: 1em;
+                padding: 8px 15px;
+            }
+
+            #player {
+                width: 50px;
+                height: 50px;
+                bottom: 80px;
+                /* Make space for mobile controls */
+            }
+
+            #player::before {
+                top: -15px;
+                border-left: 12px solid transparent;
+                border-right: 12px solid transparent;
+                border-bottom: 15px solid #8888ff;
+            }
+
+            .projectile {
+                width: 4px;
+                height: 15px;
+            }
+
+            .asteroid {
+                width: 30px;
+                height: 30px;
+            }
+
+            #mobile-controls {
+                display: flex;
+                /* Show mobile controls */
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .restart-button,
+            .start-button {
+                font-size: 0.8em;
+                padding: 10px 20px;
+            }
+
+            .mobile-button {
+                font-size: 0.8em;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-area">
+        <!-- Score and Health Display -->
+        <div id="score-board">
+            <div>Score: <span id="score">0</span></div>
+            <div>Health: <span id="health">100</span></div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <h1>Fire game</h1>
+            <button class="start-button" onclick="startGame()">Start Game</button>
+            <p style="font-size: 0.8em; margin-top: 30px; color: #aaa;">
+                Use Left/Right Arrow Keys or A/D to Move<br>
+                Press Spacebar or W to Shoot
+            </p>
+            <div id="mobile-start-controls" style="margin-top: 20px;">
+                <button class="mobile-button" onmousedown="movePlayer(-1)" onmouseup="stopMove()"
+                    ontouchstart="movePlayer(-1)" ontouchend="stopMove()" style="width: 100px;">LEFT: A</button>
+                <button class="mobile-button" onmousedown="fireProjectile()" onmouseup="stopMove()"
+                    ontouchstart="fireProjectile()" ontouchend="stopMove()" style="width: 100px;">FIRE: Space</button>
+                <button class="mobile-button" onmousedown="movePlayer(1)" onmouseup="stopMove()"
+                    ontouchstart="movePlayer(1)" ontouchend="stopMove()" style="width: 100px;">RIGHT: D</button>
+            </div>
+
+        </div>
+
+        <!-- Player Spaceship -->
+        <div id="player"></div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen">
+            <h2>GAME OVER</h2>
+            <div class="final-score">Final Score: <span id="final-score-display">0</span></div>
+            <button class="restart-button" onclick="restartGame()">Restart</button>
+        </div>
+
+        <!-- Mobile Controls (for active gameplay) -->
+        <div id="mobile-controls">
+            <button class="mobile-button" id="moveLeftBtn" onmousedown="movePlayer(-1)" onmouseup="stopMove()"
+                ontouchstart="movePlayer(-1)" ontouchend="stopMove()">LEFT</button>
+            <button class="mobile-button" id="fireBtn" onmousedown="fireProjectile()" onmouseup="stopMove()"
+                ontouchstart="fireProjectile()" ontouchend="stopMove()">FIRE</button>
+            <button class="mobile-button" id="moveRightBtn" onmousedown="movePlayer(1)" onmouseup="stopMove()"
+                ontouchstart="movePlayer(1)" ontouchend="stopMove()">RIGHT</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Game Elements ---
+        const gameArea = document.getElementById('game-area');
+        const player = document.getElementById('player');
+        const scoreDisplay = document.getElementById('score');
+        const healthDisplay = document.getElementById('health');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score-display');
+        const startScreen = document.getElementById('start-screen');
+        const mobileControls = document.getElementById('mobile-controls');
+        const mobileStartControls = document.getElementById('mobile-start-controls');
+
+        // --- Game Variables ---
+        let score = 0;
+        let health = 50;
+        let playerSpeed = 10; // Player movement speed
+        let projectileSpeed = 10; // Laser speed
+        let asteroidSpeedMin = 5; // Minimum asteroid falling speed
+        let asteroidSpeedMax = 15; // Maximum asteroid falling speed
+        let asteroidSpawnInterval = 1000; // Time in ms between asteroid spawns
+        let gameLoopInterval = 20; // Main game loop interval in ms
+        let lastAsteroidSpawnTime = 0;
+        let gameActive = false;
+        let playerMovingLeft = false;
+        let playerMovingRight = false;
+        let playerX = gameArea.offsetWidth / 2 - player.offsetWidth / 2; // Player's horizontal position
+
+        // Arrays to hold active game objects
+        let projectiles = [];
+        let asteroids = [];
+
+        // --- Game Initialization ---
+        function initializeGame() {
+            score = 0;
+            health = 100;
+            scoreDisplay.textContent = score;
+            healthDisplay.textContent = health;
+            playerX = gameArea.offsetWidth / 2 - player.offsetWidth / 2;
+            player.style.left = `${playerX}px`;
+
+            // Clear existing elements
+            projectiles.forEach(p => p.element.remove());
+            asteroids.forEach(a => a.element.remove());
+            projectiles = [];
+            asteroids = [];
+
+            gameOverScreen.style.display = 'none';
+            mobileControls.style.display = 'none'; // Hide mobile controls initially
+            startScreen.style.display = 'flex'; // Show start screen
+            gameArea.style.display = 'flex'; // Ensure game area is visible
+            gameActive = false; // Game is not active until 'Start Game'
+        }
+
+        // --- Start Game Function ---
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameActive = true;
+            mobileControls.style.display = 'flex'; // Show mobile controls after game starts
+            gameLoop(); // Start the main game loop
+        }
+
+        // --- Game Over Logic ---
+        function gameOver() {
+            gameActive = false;
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'flex';
+            mobileControls.style.display = 'none'; // Hide mobile controls on game over
+        }
+
+        // --- Restart Game Logic ---
+        function restartGame() {
+            initializeGame(); // Re-initialize all game states
+            startGame(); // Start the game again
+        }
+
+        // --- Player Movement ---
+        function updatePlayerPosition() {
+            if (playerMovingLeft) {
+                playerX -= playerSpeed;
+            } else if (playerMovingRight) {
+                playerX += playerSpeed;
+            }
+
+            // Clamp player position within game boundaries
+            playerX = Math.max(0, Math.min(playerX, gameArea.offsetWidth - player.offsetWidth));
+            player.style.left = `${playerX}px`;
+        }
+
+        // Functions for mobile touch/mouse controls
+        function movePlayer(direction) { // -1 for left, 1 for right
+            if (direction === -1) {
+                playerMovingLeft = true;
+                playerMovingRight = false;
+            } else if (direction === 1) {
+                playerMovingRight = true;
+                playerMovingLeft = false;
+            }
+        }
+
+        function stopMove() {
+            playerMovingLeft = false;
+            playerMovingRight = false;
+        }
+
+        // --- Projectiles (Lasers) ---
+        function fireProjectile() {
+            if (!gameActive) return; // Only fire if game is active
+            const projectile = document.createElement('div');
+            projectile.classList.add('projectile');
+            const playerRect = player.getBoundingClientRect();
+            const gameAreaRect = gameArea.getBoundingClientRect();
+
+            // Position projectile at the top center of the player
+            const startX = (playerRect.left - gameAreaRect.left) + player.offsetWidth / 2 - 2.5; // 2.5 is half of projectile width
+            const startY = (playerRect.top - gameAreaRect.top);
+
+            projectile.style.left = `${startX}px`;
+            projectile.style.top = `${startY}px`;
+            gameArea.appendChild(projectile);
+
+            projectiles.push({
+                element: projectile,
+                x: startX,
+                y: startY
+            });
+        }
+
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.y -= projectileSpeed;
+                p.element.style.top = `${p.y}px`;
+
+                // Remove projectile if it goes off screen
+                if (p.y < 0) {
+                    p.element.remove();
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        // --- Asteroids (Enemies) ---
+        function createAsteroid() {
+            const asteroid = document.createElement('div');
+            asteroid.classList.add('asteroid');
+
+            // Random size for asteroids
+            const size = Math.random() * (60 - 30) + 30; // Between 30px and 60px
+            asteroid.style.width = `${size}px`;
+            asteroid.style.height = `${size}px`;
+
+            // Random initial X position
+            const startX = Math.random() * (gameArea.offsetWidth - size);
+            asteroid.style.left = `${startX}px`;
+            asteroid.style.top = `0px`; // Start from the top
+
+            // Random speed for this asteroid
+            const speed = Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin;
+
+            gameArea.appendChild(asteroid);
+            asteroids.push({
+                element: asteroid,
+                x: startX,
+                y: 0,
+                size: size,
+                speed: speed
+            });
+        }
+
+        function updateAsteroids() {
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const a = asteroids[i];
+                a.y += a.speed;
+                a.element.style.top = `${a.y}px`;
+
+                // Remove asteroid if it goes off screen
+                if (a.y > gameArea.offsetHeight) {
+                    a.element.remove();
+                    asteroids.splice(i, 1);
+                    // Optionally, penalize score/health for missed asteroids
+                }
+            }
+        }
+
+        // --- Collision Detection ---
+        function checkCollisions() {
+            // Player vs Asteroid
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+                const playerRect = player.getBoundingClientRect();
+                const asteroidRect = asteroid.element.getBoundingClientRect();
+
+                // Simple AABB collision check
+                if (
+                    playerRect.left < asteroidRect.right &&
+                    playerRect.right > asteroidRect.left &&
+                    playerRect.top < asteroidRect.bottom &&
+                    playerRect.bottom > asteroidRect.top
+                ) {
+                    health -= 10; // Reduce health on hit
+                    healthDisplay.textContent = health;
+                    createExplosion(asteroid.x, asteroid.y, asteroid.size);
+                    asteroid.element.remove();
+                    asteroids.splice(i, 1);
+
+                    if (health <= 0) {
+                        gameOver();
+                        return; // Stop checking collisions if game is over
+                    }
+                }
+            }
+
+            // Projectile vs Asteroid
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
+                const projectileRect = projectile.element.getBoundingClientRect();
+
+                for (let j = asteroids.length - 1; j >= 0; j--) {
+                    const asteroid = asteroids[j];
+                    const asteroidRect = asteroid.element.getBoundingClientRect();
+
+                    if (
+                        projectileRect.left < asteroidRect.right &&
+                        projectileRect.right > asteroidRect.left &&
+                        projectileRect.top < asteroidRect.bottom &&
+                        projectileRect.bottom > asteroidRect.top
+                    ) {
+                        // Collision! Remove both
+                        createExplosion(asteroid.x, asteroid.y, asteroid.size);
+                        projectile.element.remove();
+                        asteroids[j].element.remove();
+
+                        projectiles.splice(i, 1);
+                        asteroids.splice(j, 1);
+
+                        score += 10; // Increase score
+                        scoreDisplay.textContent = score;
+                        break; // Break inner loop as projectile is gone
+                    }
+                }
+            }
+        }
+
+        // --- Explosion Effect ---
+        function createExplosion(x, y, size) {
+            const explosion = document.createElement('div');
+            explosion.classList.add('explosion');
+            explosion.style.left = `${x - size / 2}px`; // Center explosion
+            explosion.style.top = `${y - size / 2}px`;
+            explosion.style.width = `${size * 1.5}px`; // Make explosion larger than asteroid
+            explosion.style.height = `${size * 1.5}px`;
+            gameArea.appendChild(explosion);
+
+            // Remove explosion element after animation
+            explosion.addEventListener('animationend', () => {
+                explosion.remove();
+            });
+        }
+
+
+        // --- Keyboard Event Listeners ---
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                playerMovingLeft = true;
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                playerMovingRight = true;
+            } else if (e.key === ' ' || e.key === 'w' || e.key === 'W') { // Spacebar or 'W' for fire
+                fireProjectile();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (!gameActive) return;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                playerMovingLeft = false;
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                playerMovingRight = false;
+            }
+        });
+
+
+        // --- Main Game Loop ---
+        function gameLoop(currentTime) {
+            if (!gameActive) return; // Stop loop if game is not active
+
+            updatePlayerPosition();
+            updateProjectiles();
+            updateAsteroids();
+            checkCollisions();
+
+            // Asteroid Spawning
+            if (currentTime - lastAsteroidSpawnTime > asteroidSpawnInterval) {
+                createAsteroid();
+                lastAsteroidSpawnTime = currentTime;
+            }
+
+            requestAnimationFrame(gameLoop); // Continue the loop
+        }
+
+        // Initial setup on window load
+        window.onload = function () {
+            initializeGame(); // Setup the game and show start screen
+        };
+
+    </script>
+</body>
