@@ -47,6 +47,7 @@
         #board-container {
             display: flex;
             justify-content: center;
+            position: relative;
         }
 
         #board {
@@ -99,6 +100,23 @@
             margin-top: 10px;
             display: none;
         }
+
+        #pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(39px * 18 + 2px);
+            height: calc(39px * 10 + 2px);
+            background-color: rgba(255, 255, 255, 0.98);
+            z-index: 10;
+            text-align: center;
+            line-height: calc(36px * 10);
+            font-size: 20px;
+            font-weight: bold;
+            color: #555;
+            border: 3px dashed #ccc;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -118,13 +136,16 @@
         <!-- Bảng -->
         <div id="board-container">
             <table id="board"></table>
+            <div id="pause-overlay" style="display:none;"></div>
         </div>
 
         <!-- Nút chức năng -->
         <div id="action-buttons">
             <button onclick="resetGame()">🔄 Reset</button>
             <button onclick="undo()">↩️ Undo</button>
-            <button onclick="useHint()" title="Cộng thêm 10 giây">💡 Gợi ý</button>
+            <button onclick="useHint()">💡 Gợi ý (+10s)</button>
+            <button onclick="pauseGame()">⏸ Pause</button>
+            <button onclick="resumeGame()" id="resumeBtn" style="display:none;">▶️ Play</button>
         </div>
 
         <!-- Kết thúc -->
@@ -140,7 +161,7 @@
     <audio id="clickSound" src="click_embed.mp3" preload="auto"></audio>
 
     <script>
-        const ROWS = 10, COLS = 17;
+        const ROWS = 10, COLS = 18;
         let grid = [], score = 0, start = null, undoStack = [];
         let board = document.getElementById('board');
         let scoreEl = document.getElementById('score');
@@ -150,6 +171,7 @@
         let historyEl = document.getElementById('history');
         let clickSound = document.getElementById('clickSound');
         let mode = "countdown", timer = null, time = 150, timedSeconds = 0, shuffleCount = 0;
+        let paused = false;
 
         function generateGrid() {
             grid = Array.from({ length: ROWS }, () =>
@@ -190,6 +212,7 @@
                 time = 150;
                 timerEl.innerText = time;
                 timer = setInterval(() => {
+                    if (paused) return;
                     time--;
                     timerEl.innerText = time;
                     if (time <= 0) {
@@ -201,6 +224,7 @@
                 timedSeconds = 0;
                 timerEl.innerText = timedSeconds;
                 timer = setInterval(() => {
+                    if (paused) return;
                     timedSeconds++;
                     timerEl.innerText = timedSeconds;
                     if (!hasValidMove()) shuffleBoard();
@@ -365,6 +389,21 @@
             document.querySelectorAll('.cell.selected').forEach(td =>
                 td.classList.remove('selected')
             );
+        }
+
+        function pauseGame() {
+            paused = true;
+            board.style.pointerEvents = 'none';
+            document.getElementById('resumeBtn').style.display = 'inline-block';
+            document.getElementById('pause-overlay').style.display = 'block';
+            document.getElementById('pause-overlay').innerText = '⏸ Tạm dừng';
+        }
+
+        function resumeGame() {
+            paused = false;
+            board.style.pointerEvents = 'auto';
+            document.getElementById('resumeBtn').style.display = 'none';
+            document.getElementById('pause-overlay').style.display = 'none';
         }
 
         startCountdownMode(); // Khởi động mặc định
