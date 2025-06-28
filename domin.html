@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dò Mìn</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fefefe;
+            text-align: center;
+            padding: 10px;
+        }
+
+        #controls {
+            margin-bottom: 10px;
+        }
+
+        #board {
+            display: grid;
+            gap: 2px;
+            justify-content: center;
+            margin: auto;
+            touch-action: manipulation;
+        }
+
+        .cell {
+            width: 8vw;
+            max-width: 32px;
+            height: 8vw;
+            max-height: 32px;
+            background: #ddd;
+            border: 1px solid #999;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell.revealed {
+            background: #fff;
+            cursor: default;
+        }
+
+        .cell.mine {
+            background: red;
+            color: white;
+        }
+
+        .cell.flag {
+            background: #f9f9a4;
+        }
+
+        #resetBtn {
+            padding: 6px 12px;
+            font-size: 14px;
+            margin-top: 8px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            width: 60px;
+            padding: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .cell {
+                font-size: 14px;
+            }
+
+            input {
+                width: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🧨 Game Dò Mìn</h2>
+
+    <div id="controls">
+        <label>Kích thước: </label>
+        <input type="number" id="sizeInput" min="5" max="30" value="10">
+        <label>Bom: </label>
+        <input type="number" id="mineInput" min="1" max="200" value="10">
+        <button id="resetBtn">🔄 Bắt đầu lại</button>
+    </div>
+
+    <p>💣 Bom còn lại: <span id="minesLeft">0</span></p>
+    <p>⏱ Thời gian: <span id="timer">0</span> giây</p>
+    <p>🏆 Kỷ lục: <span id="bestTime">--</span> giây</p>
+
+    <div id="board"></div>
+    <p id="status"></p>
+
+    <script>
+        let boardSize = 10;
+        let mineCount = 10;
+        let board = [];
+        let revealedCount = 0;
+        let gameOver = false;
+        let flagsPlaced = 0;
+        let timer = 0;
+        let timerInterval = null;
+        let started = false;
+
+        const boardDiv = document.getElementById("board");
+        const statusDiv = document.getElementById("status");
+        const resetBtn = document.getElementById("resetBtn");
+        const sizeInput = document.getElementById("sizeInput");
+        const mineInput = document.getElementById("mineInput");
+        const timerSpan = document.getElementById("timer");
+        const bestTimeSpan = document.getElementById("bestTime");
+        const minesLeftSpan = document.getElementById("minesLeft");
+
+        resetBtn.addEventListener("click", () => {
+            boardSize = parseInt(sizeInput.value);
+            mineCount = parseInt(mineInput.value);
+            initBoard();
+        });
+
+        function initBoard() {
+            board = [];
+            revealedCount = 0;
+            gameOver = false;
+            flagsPlaced = 0;
+            started = false;
+            timer = 0;
+            clearInterval(timerInterval);
+            timerSpan.textContent = '0';
+            minesLeftSpan.textContent = mineCount;
+            statusDiv.textContent = '';
+            boardDiv.innerHTML = '';
+            boardDiv.style.pointerEvents = 'auto';
+            boardDiv.style.gridTemplateColumns = `repeat(${boardSize}, auto)`;
+
+            for (let y = 0; y < boardSize; y++) {
+                let row = [];
+                for (let x = 0; x < boardSize; x++) {
+                    row.push({ mine: false, revealed: false, adjacent: 0, flagged: false });
+                }
+                board.push(row);
+            }
+
+            let minesPlaced = 0;
+            while (minesPlaced < mineCount) {
+                const x = Math.floor(Math.random() * boardSize);
+                const y = Math.floor(Math.random() * boardSize);
+                if (!board[y][x].mine) {
+                    board[y][x].mine = true;
+                    minesPlaced++;
+                }
+            }
+
+            for (let y = 0; y < boardSize; y++) {
+                for (let x = 0; x < boardSize; x++) {
+                    if (!board[y][x].mine) {
+                        board[y][x].adjacent = countAdjacentMines(x, y);
+                    }
+                }
+            }
+
+            for (let y = 0; y < boardSize; y++) {
+                for (let x = 0; x < boardSize; x++) {
+                    const cell = document.createElement("div");
+                    cell.className = "cell";
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+
+                    cell.addEventListener("click", () => {
+                        if (!started) startTimer();
+                        if (!gameOver) revealCell(x, y);
+                    });
+
+                    cell.addEventListener("contextmenu", (e) => {
+                        e.preventDefault();
+                        if (!gameOver) toggleFlag(x, y);
+                    });
+
+                    boardDiv.appendChild(cell);
+                }
+            }
+
+            loadBestTime();
+        }
+
+        function countAdjacentMines(x, y) {
+            let count = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[ny][nx].mine) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function toggleFlag(x, y) {
+            const cell = board[y][x];
+            if (cell.revealed) return;
+
+            const cellDiv = getCellDiv(x, y);
+            cell.flagged = !cell.flagged;
+            cellDiv.classList.toggle("flag");
+
+            if (cell.flagged) {
+                cellDiv.textContent = "🚩";
+                flagsPlaced++;
+            } else {
+                cellDiv.textContent = "";
+                flagsPlaced--;
+            }
+
+            const remaining = mineCount - flagsPlaced;
+            minesLeftSpan.textContent = remaining;
+        }
+
+        function getCellDiv(x, y) {
+            return document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+        }
+
+        function revealCell(x, y) {
+            const cell = board[y][x];
+            if (cell.revealed || cell.flagged) return;
+
+            const cellDiv = getCellDiv(x, y);
+            cell.revealed = true;
+            cellDiv.classList.add("revealed");
+            cellDiv.classList.remove("flag");
+
+            if (cell.mine) {
+                cellDiv.classList.add("mine");
+                cellDiv.textContent = "💣";
+                gameOver = true;
+                statusDiv.textContent = "💥 Bạn đã thua!";
+                boardDiv.style.pointerEvents = 'none';
+                revealAllMines();
+                clearInterval(timerInterval);
+                return;
+            }
+
+            revealedCount++;
+            if (cell.adjacent > 0) {
+                cellDiv.textContent = cell.adjacent;
+            } else {
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const nx = x + dx, ny = y + dy;
+                        if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize) {
+                            revealCell(nx, ny);
+                        }
+                    }
+                }
+            }
+
+            if (revealedCount === boardSize * boardSize - mineCount) {
+                gameOver = true;
+                statusDiv.textContent = "🎉 Bạn đã thắng!";
+                boardDiv.style.pointerEvents = 'none';
+                clearInterval(timerInterval);
+                checkBestTime(timer);
+            }
+        }
+
+        function revealAllMines() {
+            for (let y = 0; y < boardSize; y++) {
+                for (let x = 0; x < boardSize; x++) {
+                    const cell = board[y][x];
+                    const cellDiv = getCellDiv(x, y);
+                    if (cell.mine) {
+                        cellDiv.classList.add("revealed", "mine");
+                        cellDiv.textContent = "💣";
+                    }
+                }
+            }
+        }
+
+        function startTimer() {
+            started = true;
+            timerInterval = setInterval(() => {
+                timer++;
+                timerSpan.textContent = timer;
+            }, 1000);
+        }
+
+        function checkBestTime(currentTime) {
+            const key = `best_${boardSize}x${boardSize}_${mineCount}`;
+            const best = localStorage.getItem(key);
+            if (!best || currentTime < best) {
+                localStorage.setItem(key, currentTime);
+                bestTimeSpan.textContent = currentTime;
+            }
+        }
+
+        function loadBestTime() {
+            const key = `best_${boardSize}x${boardSize}_${mineCount}`;
+            const best = localStorage.getItem(key);
+            bestTimeSpan.textContent = best ? best : "--";
+        }
+
+        initBoard();
+    </script>
+</body>
+
+</html>
