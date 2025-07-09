@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chia đội tự động</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        input,
+        button,
+        textarea {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+        }
+
+        .team {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🧑‍🤝‍🧑 Công cụ chia đội tự động</h2>
+
+    <label>Số người:</label>
+    <input type="number" id="numPeople" min="1" placeholder="Ví dụ: 10">
+
+    <label>Số đội:</label>
+    <input type="number" id="numTeams" min="1" placeholder="Ví dụ: 2">
+
+    <label>Nhập tên các thành viên (mỗi dòng 1 tên):</label>
+    <textarea id="memberList" rows="10" placeholder="Ví dụ:
+Nam
+Lan
+Hùng
+..."></textarea>
+
+    <button onclick="autoDivideTeams()">🎲 Auto chia đội</button>
+
+    <div id="result"></div>
+
+    <script>
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function autoDivideTeams() {
+            const numTeams = parseInt(document.getElementById('numTeams').value);
+            const members = document.getElementById('memberList').value
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name !== "");
+
+            if (members.length === 0 || numTeams <= 0) {
+                alert("Vui lòng nhập đầy đủ số đội và danh sách thành viên.");
+                return;
+            }
+
+            shuffleArray(members);
+
+            const teams = Array.from({ length: numTeams }, () => []);
+
+            for (let i = 0; i < members.length; i++) {
+                teams[i % numTeams].push(members[i]);
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "<h3>Kết quả chia đội:</h3>";
+
+            teams.forEach((team, index) => {
+                const teamHTML = `
+          <div class="team">
+            <strong>Đội ${index + 1}:</strong><br>
+            ${team.map(member => `• ${member}`).join("<br>")}
+          </div>`;
+                resultDiv.innerHTML += teamHTML;
+            });
+        }
+    </script>
+
+</body>
+
+</html>
