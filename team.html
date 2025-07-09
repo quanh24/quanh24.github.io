@@ -3,55 +3,171 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Chia đội tự động</title>
+    <title>Chia đội ngẫu nhiên</title>
     <style>
         body {
             font-family: sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding: 20px;
+            font-size: 18px;
         }
 
         input,
         button,
-        textarea {
-            margin: 5px 0;
-            padding: 8px;
+        textarea,
+        select {
+            margin: 8px 0;
+            padding: 12px;
             width: 100%;
+            font-size: 18px;
         }
 
-        .team {
-            margin-top: 15px;
-            padding: 10px;
+        button {
+            font-weight: bold;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .buttons button.reset {
+            background-color: #f44336;
+        }
+
+        .buttons button.reset:hover {
+            background-color: #d32f2f;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .close {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .team-box {
             background-color: #f1f1f1;
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        .team-box h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>🧑‍🤝‍🧑 Công cụ chia đội tự động</h2>
+    <h2>🧑‍🤝‍🧑 Công cụ chia đội ngẫu nhiên</h2>
 
-    <label>Số người:</label>
-    <input type="number" id="numPeople" min="1" placeholder="Ví dụ: 10">
+    <label>Chọn cách chia đội:</label>
+    <select id="divideMode" onchange="toggleInputMode()">
+        <option value="teamCount">Chia theo số đội</option>
+        <option value="membersPerTeam">Chia theo số người mỗi đội</option>
+    </select>
 
-    <label>Số đội:</label>
-    <input type="number" id="numTeams" min="1" placeholder="Ví dụ: 2">
+    <div id="teamCountInput">
+        <label>Số đội (bắt buộc):</label>
+        <input type="number" id="numTeams" min="1" placeholder="Ví dụ: 3">
+    </div>
+
+    <div id="membersPerTeamInput" style="display: none;">
+        <label>Số người mỗi đội (bắt buộc):</label>
+        <input type="number" id="numMembersPerTeam" min="1" placeholder="Ví dụ: 4">
+    </div>
 
     <label>Nhập tên các thành viên (mỗi dòng 1 tên):</label>
     <textarea id="memberList" rows="10" placeholder="Ví dụ:
 Nam
 Lan
 Hùng
+Mai
 ..."></textarea>
 
-    <button onclick="autoDivideTeams()">🎲 Auto chia đội</button>
+    <div class="buttons">
+        <button onclick="autoDivideTeams()">🎲 Auto chia đội</button>
+        <button onclick="copyAsImage()">📷 Copy ảnh kết quả</button>
+        <button class="reset" onclick="resetForm()">🔄 Reset</button>
+    </div>
 
-    <div id="result"></div>
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content" id="modalContent">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Kết quả chia đội:</h3>
+            <div id="result" class="grid"></div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="copyAsImage()">📷 Copy ảnh kết quả</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <script>
-        function shuffleArray(array) {
+        function toggleInputMode() {
+            const mode = document.getElementById('divideMode').value;
+            document.getElementById('teamCountInput').style.display = (mode === 'teamCount') ? 'block' : 'none';
+            document.getElementById('membersPerTeamInput').style.display = (mode === 'membersPerTeam') ? 'block' : 'none';
+        }
+
+        window.onload = () => {
+            document.getElementById('memberList').value = localStorage.getItem('memberList') || '';
+            document.getElementById('numTeams').value = localStorage.getItem('numTeams') || '';
+            document.getElementById('numMembersPerTeam').value = localStorage.getItem('numMembersPerTeam') || '';
+        };
+
+        function saveInputs() {
+            localStorage.setItem('memberList', document.getElementById('memberList').value);
+            localStorage.setItem('numTeams', document.getElementById('numTeams').value);
+            localStorage.setItem('numMembersPerTeam', document.getElementById('numMembersPerTeam').value);
+        }
+
+        function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
@@ -59,36 +175,103 @@ Hùng
         }
 
         function autoDivideTeams() {
-            const numTeams = parseInt(document.getElementById('numTeams').value);
+            saveInputs();
+            const mode = document.getElementById('divideMode').value;
             const members = document.getElementById('memberList').value
                 .split('\n')
-                .map(name => name.trim())
-                .filter(name => name !== "");
-
-            if (members.length === 0 || numTeams <= 0) {
-                alert("Vui lòng nhập đầy đủ số đội và danh sách thành viên.");
+                .map(x => x.trim())
+                .filter(x => x);
+            if (members.length === 0) {
+                alert("⚠️ Vui lòng nhập danh sách thành viên.");
                 return;
             }
 
-            shuffleArray(members);
+            shuffle(members);
+            let teams = [];
 
-            const teams = Array.from({ length: numTeams }, () => []);
+            if (mode === 'teamCount') {
+                const numTeams = parseInt(document.getElementById('numTeams').value);
+                if (!numTeams || numTeams < 1) {
+                    alert("⚠️ Vui lòng nhập số đội hợp lệ.");
+                    return;
+                }
 
-            for (let i = 0; i < members.length; i++) {
-                teams[i % numTeams].push(members[i]);
+                if (members.length < numTeams) {
+                    alert("⚠️ Số người ít hơn số đội!");
+                    return;
+                }
+
+                const baseSize = Math.floor(members.length / numTeams);
+                const remainder = members.length % numTeams;
+
+                for (let i = 0; i < numTeams; i++) {
+                    teams.push(members.slice(i * baseSize, (i + 1) * baseSize));
+                }
+
+                if (remainder > 0) {
+                    teams.push(members.slice(-remainder));
+                }
+
+            } else if (mode === 'membersPerTeam') {
+                const numPerTeam = parseInt(document.getElementById('numMembersPerTeam').value);
+                if (!numPerTeam || numPerTeam < 1) {
+                    alert("⚠️ Vui lòng nhập số người mỗi đội hợp lệ.");
+                    return;
+                }
+
+                const totalTeams = Math.ceil(members.length / numPerTeam);
+                for (let i = 0; i < totalTeams; i++) {
+                    teams.push(members.slice(i * numPerTeam, (i + 1) * numPerTeam));
+                }
             }
 
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = "<h3>Kết quả chia đội:</h3>";
-
-            teams.forEach((team, index) => {
-                const teamHTML = `
-          <div class="team">
-            <strong>Đội ${index + 1}:</strong><br>
-            ${team.map(member => `• ${member}`).join("<br>")}
-          </div>`;
-                resultDiv.innerHTML += teamHTML;
+            resultDiv.innerHTML = "";
+            teams.forEach((team, i) => {
+                const box = document.createElement("div");
+                box.className = "team-box";
+                box.innerHTML = `<h4>Đội ${i + 1}</h4><ul>${team.map(m => `<li>${m}</li>`).join('')}</ul>`;
+                resultDiv.appendChild(box);
             });
+
+            showModal();
+        }
+
+        function showModal() {
+            document.getElementById('modal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = "none";
+        }
+
+        function copyAsImage() {
+            const node = document.getElementById('result');
+            if (!node.innerHTML.trim()) {
+                alert("⚠️ Chưa có nội dung để chụp.");
+                return;
+            }
+
+            html2canvas(node).then(canvas => {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    navigator.clipboard.write([item]);
+                    alert("📷 Đã sao chép ảnh vào clipboard!");
+                });
+            });
+        }
+
+        function resetForm() {
+            if (confirm("Bạn có chắc muốn xóa toàn bộ nội dung và dữ liệu đã lưu?")) {
+                document.getElementById('numTeams').value = '';
+                document.getElementById('numMembersPerTeam').value = '';
+                document.getElementById('memberList').value = '';
+                document.getElementById('result').innerHTML = '';
+                document.getElementById('modal').style.display = 'none';
+                localStorage.removeItem('numTeams');
+                localStorage.removeItem('numMembersPerTeam');
+                localStorage.removeItem('memberList');
+            }
         }
     </script>
 
