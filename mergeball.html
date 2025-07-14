@@ -119,7 +119,7 @@
         const maxBallSpan = document.getElementById("maxBall");
         const nextBallDiv = document.getElementById("nextBallPreview");
         const gameOverDiv = document.getElementById("gameOverMessage");
-        <!-- const resetBtn = document.getElementById("resetBtn"); -->
+        const resetBtn = document.getElementById("resetBtn");
 
         function getColor(value) {
             const colors = {
@@ -132,7 +132,15 @@
         }
 
         function getRadius(value) {
-            return baseRadius + Math.log2(value) * 3;
+            const base = 25;
+            const scale = Math.log2(value);
+            if (value < 128) {
+                return base + scale * 3; // mềm mại giai đoạn đầu
+            } else if (value < 1024) {
+                return base + scale * 6; // tăng nhanh hơn từ 128
+            } else {
+                return base + scale * 10; // rất rõ ràng với 1024, 2048, 4096
+            }
         }
 
         function drawBall(ball) {
@@ -220,8 +228,8 @@
                 const dy = ball.y - other.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < r1 + r2 && dist > 0) {
-                    const overlap = r1 + r2 - dist;
                     const angle = Math.atan2(dy, dx);
+                    const overlap = r1 + r2 - dist;
                     ball.x += Math.cos(angle) * overlap / 2;
                     ball.y += Math.sin(angle) * overlap / 2;
                     other.x -= Math.cos(angle) * overlap / 2;
@@ -230,34 +238,20 @@
                     ball.vy += Math.sin(angle) * 0.5;
                     other.vx -= Math.cos(angle) * 0.5;
                     other.vy -= Math.sin(angle) * 0.5;
-                }
-            }
-        }
 
-        function mergeStaticBalls() {
-            for (let i = 0; i < balls.length; i++) {
-                for (let j = i + 1; j < balls.length; j++) {
-                    const b1 = balls[i];
-                    const b2 = balls[j];
-                    if (b1.value !== b2.value) continue;
-
-                    const r1 = getRadius(b1.value);
-                    const r2 = getRadius(b2.value);
-                    const dx = b1.x - b2.x;
-                    const dy = b1.y - b2.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < r1 + r2) {
-                        const newValue = b1.value * 2;
+                    const relativeSpeed = Math.abs(ball.vx - other.vx) + Math.abs(ball.vy - other.vy);
+                    if (ball.value === other.value) {
+                        const newValue = ball.value * 2;
                         const newBall = {
-                            x: (b1.x + b2.x) / 2,
-                            y: (b1.y + b2.y) / 2,
+                            x: (ball.x + other.x) / 2,
+                            y: (ball.y + other.y) / 2,
                             value: newValue,
                             vx: 0,
                             vy: 0
                         };
-                        balls.splice(j, 1);
-                        balls.splice(i, 1);
-                        setTimeout(() => balls.push(newBall), 1); // hiệu ứng delay
+                        balls.splice(Math.max(i, j), 1);
+                        balls.splice(Math.min(i, j), 1);
+                        balls.push(newBall);
                         score += newValue;
                         if (newValue > maxBall) maxBall = newValue;
                         updateScore();
@@ -265,6 +259,44 @@
                     }
                 }
             }
+        }
+
+        function mergeStaticBalls() {
+            let merged = false;
+            do {
+                merged = false;
+                for (let i = 0; i < balls.length; i++) {
+                    for (let j = i + 1; j < balls.length; j++) {
+                        const b1 = balls[i];
+                        const b2 = balls[j];
+                        if (b1.value !== b2.value) continue;
+                        const r1 = getRadius(b1.value);
+                        const r2 = getRadius(b2.value);
+                        const dx = b1.x - b2.x;
+                        const dy = b1.y - b2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < r1 + r2) {
+                            const newValue = b1.value * 2;
+                            const newBall = {
+                                x: (b1.x + b2.x) / 2,
+                                y: (b1.y + b2.y) / 2,
+                                value: newValue,
+                                vx: 0,
+                                vy: 0
+                            };
+                            balls.splice(j, 1);
+                            balls.splice(i, 1);
+                            balls.push(newBall);
+                            score += newValue;
+                            if (newValue > maxBall) maxBall = newValue;
+                            updateScore();
+                            merged = true;
+                            break;
+                        }
+                    }
+                    if (merged) break;
+                }
+            } while (merged);
         }
 
         let lastTime = performance.now();
@@ -338,7 +370,7 @@
                     droppingBall.y = Math.min(droppingBall.y, height - radius);
                     balls.push({ ...droppingBall });
                     droppingBall = null;
-                    dropCooldown = 300; // 300ms delay
+                    dropCooldown = 300;
                 }
 
                 if (droppingBall) drawBall(droppingBall);
