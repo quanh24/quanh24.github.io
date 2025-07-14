@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Thả Bóng 2048+</title>
     <style>
         * {
@@ -15,6 +15,11 @@
             font-family: sans-serif;
             background: #f0f0f0;
             text-align: center;
+        }
+
+        body {
+            overflow-y: hidden;
+            touch-action: manipulation;
         }
 
         h1 {
@@ -134,13 +139,9 @@
         function getRadius(value) {
             const base = 25;
             const scale = Math.log2(value);
-            if (value < 128) {
-                return base + scale * 3; // mềm mại giai đoạn đầu
-            } else if (value < 1024) {
-                return base + scale * 6; // tăng nhanh hơn từ 128
-            } else {
-                return base + scale * 10; // rất rõ ràng với 1024, 2048, 4096
-            }
+            if (value < 128) return base + scale * 4;
+            if (value < 1024) return base + scale * 8;
+            return base + scale * 12;
         }
 
         function drawBall(ball) {
