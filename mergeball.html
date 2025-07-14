@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thả Bóng 2048+</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #f0f0f0;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 10px 0;
+        }
+
+        canvas {
+            border: 2px solid #444;
+            background: #eee;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .info {
+            margin: 10px;
+            font-size: 18px;
+        }
+
+        .next-ball {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            gap: 10px;
+        }
+
+        .ball-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid #333;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #444;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #222;
+        }
+
+        #gameOverMessage {
+            font-size: 20px;
+            color: red;
+            font-weight: bold;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎯 Thả Bóng 2048+</h1>
+
+    <div class="info">
+        🧮 Điểm: <span id="score">0</span> |
+        🎯 Cao nhất: <span id="maxBall">0</span>
+    </div>
+
+    <div class="next-ball">
+        🔮 Tiếp theo:
+        <div id="nextBallPreview" class="ball-preview">2</div>
+    </div>
+
+    <div id="gameOverMessage"></div>
+
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <button id="resetBtn">🔄 Chơi lại</button>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const gravity = 0.3;
+        const bounce = 0.5;
+        const baseRadius = 25;
+        const physicsSteps = 4;
+
+        let balls = [];
+        let droppingBall = null;
+        let nextValue = 2;
+        let score = 0;
+        let maxBall = 0;
+        let gameOver = false;
+        let canDrop = true;
+        let dropCooldown = 0;
+
+        const scoreSpan = document.getElementById("score");
+        const maxBallSpan = document.getElementById("maxBall");
+        const nextBallDiv = document.getElementById("nextBallPreview");
+        const gameOverDiv = document.getElementById("gameOverMessage");
+        <!-- const resetBtn = document.getElementById("resetBtn"); -->
+
+        function getColor(value) {
+            const colors = {
+                2: "#eee4da", 4: "#ede0c8", 8: "#f2b179", 16: "#f59563",
+                32: "#f67c5f", 64: "#f65e3b", 128: "#edcf72", 256: "#edcc61",
+                512: "#edc850", 1024: "#edc53f", 2048: "#edc22e",
+                4096: "#f7a43f", 8192: "#f75e2e", 16384: "#d33f2e"
+            };
+            return colors[value] || "#222";
+        }
+
+        function getRadius(value) {
+            return baseRadius + Math.log2(value) * 3;
+        }
+
+        function drawBall(ball) {
+            const radius = getRadius(ball.value);
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = getColor(ball.value);
+            ctx.fill();
+            ctx.strokeStyle = "#333";
+            ctx.stroke();
+            ctx.fillStyle = "#000";
+            ctx.font = `bold ${radius}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillText(ball.value, ball.x, ball.y + radius * 0.3);
+        }
+
+        function updateScore() {
+            scoreSpan.textContent = score;
+            maxBallSpan.textContent = maxBall;
+        }
+
+        function updateNextBallPreview() {
+            nextBallDiv.textContent = nextValue;
+            nextBallDiv.style.background = getColor(nextValue);
+        }
+
+        function resetGame() {
+            balls = [];
+            droppingBall = null;
+            nextValue = 2;
+            score = 0;
+            maxBall = 0;
+            gameOver = false;
+            canDrop = true;
+            dropCooldown = 0;
+            gameOverDiv.textContent = "";
+            updateScore();
+            updateNextBallPreview();
+        }
+
+        resetBtn.onclick = resetGame;
+
+        canvas.addEventListener("click", (e) => {
+            if (!gameOver && canDrop && !droppingBall) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                droppingBall = {
+                    x, y: getRadius(nextValue), value: nextValue,
+                    vx: 0, vy: 0
+                };
+                canDrop = false;
+                nextValue = Math.random() < 0.5 ? 2 : 4;
+                updateNextBallPreview();
+            }
+        });
+
+        function updatePhysics(ball, i) {
+            ball.vy += gravity / physicsSteps;
+            ball.x += ball.vx / physicsSteps;
+            ball.y += ball.vy / physicsSteps;
+
+            const radius = getRadius(ball.value);
+
+            if (ball.x - radius < 0) {
+                ball.x = radius;
+                ball.vx = -ball.vx * bounce;
+            }
+            if (ball.x + radius > width) {
+                ball.x = width - radius;
+                ball.vx = -ball.vx * bounce;
+            }
+
+            if (ball.y + radius > height) {
+                ball.y = height - radius;
+                ball.vy = -ball.vy * bounce;
+                if (Math.abs(ball.vy) < 0.5) ball.vy = 0;
+            }
+
+            for (let j = 0; j < balls.length; j++) {
+                if (i === j) continue;
+                const other = balls[j];
+                const r1 = getRadius(ball.value);
+                const r2 = getRadius(other.value);
+                const dx = ball.x - other.x;
+                const dy = ball.y - other.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < r1 + r2 && dist > 0) {
+                    const overlap = r1 + r2 - dist;
+                    const angle = Math.atan2(dy, dx);
+                    ball.x += Math.cos(angle) * overlap / 2;
+                    ball.y += Math.sin(angle) * overlap / 2;
+                    other.x -= Math.cos(angle) * overlap / 2;
+                    other.y -= Math.sin(angle) * overlap / 2;
+                    ball.vx += Math.cos(angle) * 0.5;
+                    ball.vy += Math.sin(angle) * 0.5;
+                    other.vx -= Math.cos(angle) * 0.5;
+                    other.vy -= Math.sin(angle) * 0.5;
+                }
+            }
+        }
+
+        function mergeStaticBalls() {
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const b1 = balls[i];
+                    const b2 = balls[j];
+                    if (b1.value !== b2.value) continue;
+
+                    const r1 = getRadius(b1.value);
+                    const r2 = getRadius(b2.value);
+                    const dx = b1.x - b2.x;
+                    const dy = b1.y - b2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < r1 + r2) {
+                        const newValue = b1.value * 2;
+                        const newBall = {
+                            x: (b1.x + b2.x) / 2,
+                            y: (b1.y + b2.y) / 2,
+                            value: newValue,
+                            vx: 0,
+                            vy: 0
+                        };
+                        balls.splice(j, 1);
+                        balls.splice(i, 1);
+                        setTimeout(() => balls.push(newBall), 1); // hiệu ứng delay
+                        score += newValue;
+                        if (newValue > maxBall) maxBall = newValue;
+                        updateScore();
+                        return;
+                    }
+                }
+            }
+        }
+
+        let lastTime = performance.now();
+        function update(now = performance.now()) {
+            const deltaTime = now - lastTime;
+            lastTime = now;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (!droppingBall && dropCooldown > 0) {
+                dropCooldown -= deltaTime;
+                if (dropCooldown <= 0) canDrop = true;
+            }
+
+            if (droppingBall) {
+                for (let step = 0; step < physicsSteps; step++) {
+                    droppingBall.vy += gravity / physicsSteps;
+                    droppingBall.x += droppingBall.vx / physicsSteps;
+                    droppingBall.y += droppingBall.vy / physicsSteps;
+
+                    const radius = getRadius(droppingBall.value);
+                    if (droppingBall.x - radius < 0) {
+                        droppingBall.x = radius;
+                        droppingBall.vx *= -bounce;
+                    }
+                    if (droppingBall.x + radius > width) {
+                        droppingBall.x = width - radius;
+                        droppingBall.vx *= -bounce;
+                    }
+
+                    for (let i = balls.length - 1; i >= 0; i--) {
+                        const other = balls[i];
+                        const r1 = getRadius(droppingBall.value);
+                        const r2 = getRadius(other.value);
+                        const dx = droppingBall.x - other.x;
+                        const dy = droppingBall.y - other.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < r1 + r2 && dist > 0) {
+                            const angle = Math.atan2(dy, dx);
+                            const overlap = r1 + r2 - dist;
+                            droppingBall.x += Math.cos(angle) * overlap / 2;
+                            droppingBall.y += Math.sin(angle) * overlap / 2;
+                            other.x -= Math.cos(angle) * overlap / 2;
+                            other.y -= Math.sin(angle) * overlap / 2;
+                            droppingBall.vx += Math.cos(angle) * 0.5;
+                            droppingBall.vy += Math.sin(angle) * 0.5;
+                            other.vx -= Math.cos(angle) * 0.5;
+                            other.vy -= Math.sin(angle) * 0.5;
+
+                            if (droppingBall.value === other.value) {
+                                balls.splice(i, 1);
+                                const newValue = droppingBall.value * 2;
+                                score += newValue;
+                                if (newValue > maxBall) maxBall = newValue;
+                                updateScore();
+                                droppingBall = {
+                                    x: (droppingBall.x + other.x) / 2,
+                                    y: (droppingBall.y + other.y) / 2,
+                                    value: newValue,
+                                    vx: 0,
+                                    vy: 0
+                                };
+                            }
+                        }
+                    }
+                }
+
+                const radius = getRadius(droppingBall.value);
+                const speed = Math.sqrt(droppingBall.vx ** 2 + droppingBall.vy ** 2);
+                if (droppingBall.y + radius >= height || speed < 0.5) {
+                    droppingBall.y = Math.min(droppingBall.y, height - radius);
+                    balls.push({ ...droppingBall });
+                    droppingBall = null;
+                    dropCooldown = 300; // 300ms delay
+                }
+
+                if (droppingBall) drawBall(droppingBall);
+            }
+
+            for (let step = 0; step < physicsSteps; step++) {
+                for (let i = 0; i < balls.length; i++) {
+                    updatePhysics(balls[i], i);
+                }
+            }
+
+            for (let i = 0; i < balls.length; i++) {
+                drawBall(balls[i]);
+                if (
+                    balls[i].y - getRadius(balls[i].value) <= 0 &&
+                    !gameOver &&
+                    !droppingBall
+                ) {
+                    gameOver = true;
+                    gameOverDiv.textContent = "🎮 Trò chơi đã kết thúc";
+                    return;
+                }
+            }
+
+            mergeStaticBalls();
+            requestAnimationFrame(update);
+        }
+
+        update();
+        updateNextBallPreview();
+    </script>
+</body>
+
+</html>
