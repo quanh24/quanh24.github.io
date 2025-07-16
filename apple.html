@@ -194,6 +194,7 @@
             #info-panel {
                 display: none;
             }
+
         }
     </style>
 </head>
@@ -218,10 +219,13 @@
         <div id="action-buttons">
             <button onclick="resetGame()">🔄 Reset</button>
             <button onclick="undo()">↩️ Undo</button>
-            <button onclick="useHint()">💡 Gợi ý (+10s)</button>
+            <button onclick="useHint()">💡 Gợi ý (+100s)</button>
             <button onclick="pauseGame()">⏸ Pause</button>
             <button onclick="resumeGame()" id="resumeBtn" style="display:none;">▶️ Play</button>
-            <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+            <div style="margin-top: 8px;">
+                <label><input type="checkbox" id="toggle-sound"> 🔈 Âm thanh</label>
+                <label><input type="checkbox" id="toggle-dark"> 🌙 Dark Mode</label>
+            </div>
         </div>
 
         <div id="game-over">⛔ Hết thời gian, trò chơi kết thúc!</div>
@@ -232,12 +236,36 @@
         <div id="history"></div>
     </div>
 
-    <audio id="clickSound" src="click_embed.mp3" preload="auto"></audio>
+    <audio id="clickSound" src="pop-39222.mp3" preload="auto"></audio>
 
     <script>
         function toggleDarkMode() {
             document.body.classList.toggle('dark');
         }
+
+        const soundCheckbox = document.getElementById('toggle-sound');
+        const darkCheckbox = document.getElementById('toggle-dark');
+
+        // Đọc setting từ localStorage khi tải trang
+        const settings = JSON.parse(localStorage.getItem('settings')) || {
+            sound: true,
+            darkMode: false
+        };
+
+        soundCheckbox.checked = settings.sound;
+        darkCheckbox.checked = settings.darkMode;
+        if (settings.darkMode) document.body.classList.add('dark');
+
+        // Cập nhật cài đặt và lưu
+        soundCheckbox.addEventListener('change', () => {
+            settings.sound = soundCheckbox.checked;
+            localStorage.setItem('settings', JSON.stringify(settings));
+        });
+        darkCheckbox.addEventListener('change', () => {
+            settings.darkMode = darkCheckbox.checked;
+            document.body.classList.toggle('dark', settings.darkMode);
+            localStorage.setItem('settings', JSON.stringify(settings));
+        });
     </script>
 
     <!-- SCRIPT (tối ưu mobile) -->
@@ -245,12 +273,12 @@
         let ROWS, COLS;
         if (window.innerWidth <= 768) {
             // Mobile
-            ROWS = 18;
+            ROWS = 17;
             COLS = 10;
         } else {
             // Desktop
             ROWS = 10;
-            COLS = 18;
+            COLS = 17;
         }
 
         let grid = [], score = 0, start = null, undoStack = [];
@@ -318,10 +346,13 @@
                     if (paused) return;
                     timedSeconds++;
                     timerEl.innerText = timedSeconds;
+
                     if (!hasValidMove()) shuffleBoard();
-                    if (isBoardCleared()) {
+                    const remaining = grid.flat().filter(v => v !== 0).length;
+
+                    if (remaining <= 1) {
                         clearInterval(timer);
-                        gameOverEl.innerText = `🎉 Hoàn thành sau ${timedSeconds} giây!`;
+                        gameOverEl.innerText = `🎯 Còn lại ${remaining} ô, trò chơi kết thúc sau ${timedSeconds} giây!`;
                         gameOverEl.style.display = 'block';
                         board.style.pointerEvents = 'none';
                         addToHistory();
@@ -407,8 +438,10 @@
                                 for (let i = r0; i <= r1; i++)
                                     for (let j = c0; j <= c1; j++)
                                         board.rows[i].cells[j].classList.add('selected');
-                                if (mode === 'timed') timedSeconds += 10;
-                                timerEl.innerText = timedSeconds;
+                                if (mode === 'timed') {
+                                    timedSeconds += 100;
+                                    timerEl.innerText = timedSeconds;
+                                }
                                 break outer;
                             }
                         }
@@ -426,11 +459,13 @@
         function startCountdownMode() {
             mode = "countdown";
             resetGame();
+            document.querySelector('button[onclick="useHint()"]').style.display = 'none';
         }
 
         function startTimedMode() {
             mode = "timed";
             resetGame();
+            document.querySelector('button[onclick="useHint()"]').style.display = 'inline-block';
         }
 
         // Mouse support
@@ -509,7 +544,7 @@
                 score += cells.length;
                 scoreEl.innerText = score;
                 renderBoard();
-                clickSound.play();
+                if (settings.sound) clickSound.play();
             }
             clearSelection();
         }
