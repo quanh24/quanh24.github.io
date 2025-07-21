@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Plants vs Zombies Canvas - Giao diện xanh</title>
+    <style>
+        body {
+            background: #222;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #topBar,
+        #bottomBar {
+            width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #topBar {
+            background: #2e7d32;
+        }
+
+        #bottomBar {
+            background: #1b5e20;
+            color: white;
+            font-size: 18px;
+        }
+
+        #canvasWrapper {
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            background: #4caf50;
+            border: 3px solid #fff;
+        }
+
+        #ui {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card {
+            width: 60px;
+            height: 60px;
+            font-size: 12px;
+            text-align: center;
+            background: #fff3;
+            border: 2px solid #fff;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cooldown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        #pauseBtn {
+            padding: 6px 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="topBar">
+            <div id="ui"></div>
+            <button id="pauseBtn">⏸ Pause</button>
+        </div>
+        <div id="canvasWrapper">
+            <canvas id="game" width="1200" height="600"></canvas>
+        </div>
+        <div id="bottomBar">
+            <div id="hud"></div>
+        </div>
+    </div>
+    <script>
+        const CONFIG = {
+            rows: 6,
+            cols: 15,
+            cellSize: 80,
+            sunFallSpeed: 0.3,
+            sunflowerSunRate: 7000,
+            globalSunRate: 5000,
+            initialSun: 150,
+            peashooterCooldown: 5000,
+            sunflowerCooldown: 7000,
+            wallnutCooldown: 10000,
+            peashooterCost: 100,
+            sunflowerCost: 50,
+            wallnutCost: 75,
+            zombieSpawnRate: 3000,
+            zombieHealth: 100,
+            strongZombieHealth: 200,
+        };
+
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        const ui = document.getElementById("ui");
+        const hud = document.getElementById("hud");
+        const pauseBtn = document.getElementById("pauseBtn");
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid(ctx);
+
+        let grid = Array.from({ length: CONFIG.rows }, () => Array(CONFIG.cols).fill(null));
+        let sun = CONFIG.initialSun;
+        let selectedPlant = null;
+        let lastPlantTime = {};
+        let suns = [];
+        let zombies = [];
+        let bullets = [];
+        let score = 0;
+        let paused = false;
+        let shovelMode = false;
+
+        const plantTypes = [
+            { name: 'Sunflower', icon: '🌻', cost: CONFIG.sunflowerCost, cooldown: CONFIG.sunflowerCooldown },
+            { name: 'Peashooter', icon: '🌱', cost: CONFIG.peashooterCost, cooldown: CONFIG.peashooterCooldown },
+            { name: 'Wall-nut', icon: '🌵', cost: CONFIG.wallnutCost, cooldown: CONFIG.wallnutCooldown },
+            { name: 'Shovel', icon: '🪓', cost: 0, cooldown: 0 },
+        ];
+
+        plantTypes.forEach(p => {
+            const btn = document.createElement("div");
+            btn.className = "card";
+            btn.innerText = p.icon + "\n" + (p.name === 'Shovel' ? '' : p.cost);
+            btn.onclick = () => {
+                if (p.name === 'Shovel') {
+                    shovelMode = true;
+                    selectedPlant = null;
+                } else if (Date.now() - (lastPlantTime[p.name] || 0) >= p.cooldown) {
+                    selectedPlant = p;
+                    shovelMode = false;
+                }
+            };
+            p._el = btn;
+            ui.appendChild(btn);
+        });
+
+        canvas.addEventListener("click", e => {
+            if (paused) return;
+            const x = Math.floor(e.offsetX / CONFIG.cellSize);
+            const y = Math.floor(e.offsetY / CONFIG.cellSize);
+            if (shovelMode) {
+                grid[y][x] = null;
+                return;
+            }
+            if (!selectedPlant || grid[y][x]) return;
+            if (sun < selectedPlant.cost) return;
+            grid[y][x] = { ...selectedPlant, hp: selectedPlant.name === 'Wall-nut' ? 500 : 100, x, y, lastShot: 0 };
+            sun -= selectedPlant.cost;
+            lastPlantTime[selectedPlant.name] = Date.now();
+            selectedPlant = null;
+        });
+
+        canvas.addEventListener("mousemove", e => {
+            if (paused) return;
+            const mx = e.offsetX, my = e.offsetY;
+            suns = suns.filter(s => {
+                const dx = s.x - mx, dy = s.y - my;
+                if (dx * dx + dy * dy < 400) {
+                    sun += 25;
+                    return false;
+                }
+                return true;
+            });
+        });
+
+        function drawGrid(ctx) {
+            ctx.strokeStyle = 'black';
+            for (let r = 0; r < CONFIG.rows; r++) {
+                for (let c = 0; c < CONFIG.cols; c++) {
+                    ctx.strokeRect(c * CONFIG.cellSize, r * CONFIG.cellSize, CONFIG.cellSize, CONFIG.cellSize);
+                }
+            }
+        }
+
+        function spawnSunflowerSun() {
+            if (paused) return;
+            grid.forEach(row => {
+                row.forEach(cell => {
+                    if (cell && cell.name === "Sunflower") {
+                        suns.push({ x: cell.x * CONFIG.cellSize + 30, y: cell.y * CONFIG.cellSize, vy: CONFIG.sunFallSpeed });
+                    }
+                });
+            });
+        }
+
+        function spawnGlobalSun() {
+            if (paused) return;
+            suns.push({ x: Math.random() * (canvas.width - 40) + 20, y: 0, vy: CONFIG.sunFallSpeed });
+        }
+
+        function getRandomRow() {
+            return Math.floor(Math.random() * CONFIG.rows);
+        }
+
+        function spawnZombie() {
+            if (paused) return;
+            let row = getRandomRow();
+            const strong = Math.random() < 0.3;
+            zombies.push({
+                x: canvas.width,
+                y: row * CONFIG.cellSize + 10,
+                row,
+                hp: strong ? CONFIG.strongZombieHealth : CONFIG.zombieHealth,
+                speed: 0.2,
+                score: strong ? 50 : 20,
+                eating: false,
+            });
+        }
+
+        function update() {
+            if (paused) return requestAnimationFrame(update);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < CONFIG.rows; y++) {
+                for (let x = 0; x < CONFIG.cols; x++) {
+                    ctx.strokeStyle = "#fff1";
+                    ctx.strokeRect(x * CONFIG.cellSize, y * CONFIG.cellSize, CONFIG.cellSize, CONFIG.cellSize);
+                    const plant = grid[y][x];
+                    if (plant) {
+                        ctx.font = "30px serif";
+                        ctx.fillText(plant.icon, x * CONFIG.cellSize + 25, y * CONFIG.cellSize + 50);
+                        if (plant.name === "Peashooter" && Date.now() - plant.lastShot > 1000) {
+                            bullets.push({ x: plant.x * CONFIG.cellSize + 40, y: plant.y * CONFIG.cellSize + 20 });
+                            plant.lastShot = Date.now();
+                        }
+                    }
+                }
+            }
+
+            ctx.fillStyle = "yellow";
+            suns.forEach(s => {
+                s.y += s.vy;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = "green";
+            bullets.forEach(b => {
+                b.x += 4;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            zombies.forEach(z => {
+                const cell = grid[z.row][Math.floor(z.x / CONFIG.cellSize)];
+                if (cell) {
+                    z.eating = true;
+                    cell.hp -= 0.3;
+                    if (cell.hp <= 0) grid[z.row][cell.x] = null;
+                } else {
+                    z.x -= z.speed;
+                    z.eating = false;
+                }
+                ctx.font = "30px serif";
+                ctx.fillText(z.hp > 100 ? "🧟‍♀️" : "🧟", z.x, z.y + 30);
+                ctx.fillStyle = "red";
+                ctx.fillRect(z.x, z.y, Math.max(0, z.hp / 2), 4);
+                ctx.fillStyle = "green";
+            });
+
+            bullets = bullets.filter(b => {
+                for (const z of zombies) {
+                    if (Math.abs(b.y - z.y - 20) < 20 && Math.abs(b.x - z.x) < 20) {
+                        z.hp -= 20;
+                        return false;
+                    }
+                }
+                return b.x < canvas.width;
+            });
+
+            zombies = zombies.filter(z => {
+                if (z.x < 0) {
+                    alert("Thua!");
+                    location.reload();
+                    return false;
+                }
+                if (z.hp <= 0) {
+                    score += z.score;
+                    return false;
+                }
+                return true;
+            });
+
+            plantTypes.forEach(p => {
+                const cd = p.cooldown - (Date.now() - (lastPlantTime[p.name] || 0));
+                p._el.innerHTML = p.icon + "\n" + (p.name === 'Shovel' ? '' : p.cost);
+                p._el.style.background = selectedPlant === p ? "#fffa" : "#fff3";
+                p._el.querySelector(".cooldown")?.remove();
+                if (cd > 0 && p.name !== 'Shovel') {
+                    const div = document.createElement("div");
+                    div.className = "cooldown";
+                    div.innerText = Math.ceil(cd / 1000);
+                    p._el.appendChild(div);
+                }
+            });
+
+            hud.innerText = `☀ ${sun}     🧟‍♂️ Điểm: ${score}`;
+
+            requestAnimationFrame(update);
+        }
+
+        pauseBtn.onclick = () => {
+            paused = !paused;
+            pauseBtn.innerText = paused ? '▶ Resume' : '⏸ Pause';
+            if (!paused) update();
+        };
+
+        setInterval(spawnSunflowerSun, CONFIG.sunflowerSunRate);
+        setInterval(spawnGlobalSun, CONFIG.globalSunRate);
+        setInterval(spawnZombie, CONFIG.zombieSpawnRate);
+        update();
+    </script>
+</body>
+
+</html>
