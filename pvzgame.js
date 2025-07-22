@@ -1,13 +1,16 @@
+// pvzgame.js
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 let sun = CONFIG.initialSun, score = 0, zLevel = 1, gameTime = 0, lastLevelUp = 0, lastMassAttack = 0;
 let paused = false, selected = null, shovel = false, lastPlant = {};
 let grid = Array.from({ length: CONFIG.rows }, () => Array(CONFIG.cols).fill(null));
 let suns = [], zombies = [], bullets = [];
+let explosions = [];
 const plantTypes = [
     { name: 'Shovel', icon: '🪓' },
     { name: 'Sunflower', icon: '🌻' },
     { name: 'Peashooter', icon: '🌱' },
-    { name: 'Wallnut', icon: '🌵' }
+    { name: 'Wallnut', icon: '🌵' },
+    { name: 'Cherry', icon: '🍒' },
 ];
 
 const ui = document.getElementById('ui');
@@ -34,7 +37,11 @@ canvas.addEventListener('click', e => {
     const x = Math.floor(e.offsetX / CONFIG.cellSize), y = Math.floor(e.offsetY / CONFIG.cellSize);
     if (shovel && grid[y][x]) { grid[y][x] = null; }
     else if (selected && !grid[y][x] && sun >= CONFIG.costs[selected.name]) {
-        grid[y][x] = { ...selected, hp: CONFIG.plantHP[selected.name], lastShot: 0 };
+        const plant = { ...selected, hp: CONFIG.plantHP[selected.name], lastShot: 0 };
+        if (selected.name === 'Cherry') {
+            plant.explodeAt = Date.now() + 500; // ⏱ nổ sau 0.5s
+        }
+        grid[y][x] = plant;
         sun -= CONFIG.costs[selected.name];
         lastPlant[selected.name] = Date.now();
         selected = null;
@@ -61,20 +68,55 @@ setInterval(() => {
 setInterval(() => {
     if (paused) return;
     const row = Math.floor(Math.random() * CONFIG.rows);
+
+    // Xác định loại zombie sẽ spawn
+    let type = 'Normal';
+    const level = zLevel;
+    const rand = Math.random();
+    let probSum = 0;
+    for (let zt of CONFIG.zombieTypes) {
+        if (zt.minLevel && level < zt.minLevel) continue;
+        probSum += zt.probability;
+        if (rand < probSum) {
+            type = zt.name;
+            break;
+        }
+    }
+
+    // Tạo zombie
+    const zConf = CONFIG.zombieTypes.find(z => z.name === type);
     zombies.push({
-        x: canvas.width, y: row * CONFIG.cellSize, hp: CONFIG.baseZombieHP + (zLevel - 1) * 30,
-        speed: CONFIG.baseZombieSpeed + (zLevel - 1) * 0.1, row
+        x: canvas.width,
+        y: row * CONFIG.cellSize,
+        row,
+        type,
+        hp: zConf.hp + (zLevel - 1) * 30,
+        speed: zConf.speed + (zLevel - 1) * 0.05
     });
 }, CONFIG.zombieSpawnRate);
 
 function massAttack() {
     for (let i = 0; i < CONFIG.rows; i++) {
+        let type = 'Normal';
+        const level = zLevel;
+        const rand = Math.random();
+        let probSum = 0;
+        for (let zt of CONFIG.zombieTypes) {
+            if (zt.minLevel && level < zt.minLevel) continue;
+            probSum += zt.probability;
+            if (rand < probSum) {
+                type = zt.name;
+                break;
+            }
+        }
+        const zConf = CONFIG.zombieTypes.find(z => z.name === type);
         zombies.push({
             x: canvas.width + Math.random() * 200,
             y: i * CONFIG.cellSize,
-            hp: CONFIG.baseZombieHP + (zLevel - 1) * 30,
-            speed: CONFIG.baseZombieSpeed + (zLevel - 1) * 0.1,
-            row: i
+            row: i,
+            type,
+            hp: zConf.hp + (zLevel - 1) * 30,
+            speed: zConf.speed + (zLevel - 1) * 0.05
         });
     }
 }
@@ -93,23 +135,66 @@ function loop(ts) {
 requestAnimationFrame(loop);
 
 function update(dt) {
+    // Bullet di chuyển và va chạm với zombie (dùng hitbox đúng vùng)
     bullets = bullets.filter(b => {
         b.x += 5;
         for (const z of zombies) {
-            if (z.row === b.row && Math.hypot(b.y - (z.y + 30), b.x - z.x) < 30) {
-                z.hp -= 20; return false;
+            const zConf = CONFIG.zombieTypes.find(t => t.name === z.type);
+            const zx1 = z.x;
+            const zx2 = z.x + zConf.hitbox.cols * CONFIG.cellSize;
+            const zy1 = z.row;
+            const zy2 = z.row + zConf.hitbox.rows;
+
+            if (b.x >= zx1 && b.x <= zx2 && b.row >= zy1 && b.row < zy2) {
+                z.hp -= 20;
+                return false;
             }
         }
         return b.x < canvas.width;
     });
 
+    const newZombies = [];
+
+    // Zombie di chuyển hoặc ăn cây (dùng hitbox nhiều ô)
     zombies = zombies.filter(z => {
-        const cx = Math.floor(z.x / CONFIG.cellSize), cy = z.row;
-        if (grid[cy][cx]) {
-            const p = grid[cy][cx]; p.hp -= 0.5;
-            if (p.hp <= 0) grid[cy][cx] = null;
-        } else z.x -= z.speed;
-        if (z.hp <= 0) { score += 10; return false; }
+        if (z.hp <= 0) {
+            score += 10;
+
+            if (z.type === 'Slime') {
+                for (let i = 0; i < 4; i++) {
+                    const offsetRow = z.row + Math.floor(i / 2);
+                    if (offsetRow >= CONFIG.rows) continue;
+
+                    newZombies.push({
+                        x: canvas.width + (i % 2) * 40,
+                        y: offsetRow * CONFIG.cellSize,
+                        row: offsetRow,
+                        type: 'MiniSlime',
+                        hp: CONFIG.zombieTypes.find(t => t.name === 'MiniSlime').hp + (zLevel - 1) * 30,
+                        speed: CONFIG.zombieTypes.find(t => t.name === 'MiniSlime').speed + (zLevel - 1) * 0.05
+                    });
+                }
+            }
+
+            return false;
+        }
+
+        let isEating = false;
+        const zConf = CONFIG.zombieTypes.find(t => t.name === z.type);
+        for (let dx = 0; dx < zConf.hitbox.cols; dx++) {
+            for (let dy = 0; dy < zConf.hitbox.rows; dy++) {
+                const cx = Math.floor((z.x + dx * CONFIG.cellSize) / CONFIG.cellSize);
+                const cy = z.row + dy;
+                if (cx >= 0 && cx < CONFIG.cols && cy >= 0 && cy < CONFIG.rows && grid[cy][cx]) {
+                    const p = grid[cy][cx];
+                    p.hp -= 0.5;
+                    if (p.hp <= 0) grid[cy][cx] = null;
+                    isEating = true;
+                }
+            }
+        }
+        if (!isEating) z.x -= z.speed;
+
         if (z.x < 0) {
             paused = true;
             document.getElementById('finalScore').innerText = score;
@@ -118,14 +203,55 @@ function update(dt) {
             document.getElementById('gameOverModal').style.display = 'flex';
             return false;
         }
+
         return true;
     });
+    zombies.push(...newZombies);
 
-    for (let y = 0; y < CONFIG.rows; y++) for (let x = 0; x < CONFIG.cols; x++) {
-        const p = grid[y][x];
-        if (p && p.name === 'Peashooter' && Date.now() - p.lastShot > 1000) {
-            bullets.push({ x: x * CONFIG.cellSize + 40, y: y * CONFIG.cellSize + 40, row: y });
-            p.lastShot = Date.now();
+    // Peashooter bắn
+    for (let y = 0; y < CONFIG.rows; y++) {
+        for (let x = 0; x < CONFIG.cols; x++) {
+            const p = grid[y][x];
+            if (p && p.name === 'Peashooter' && Date.now() - p.lastShot > 1000) {
+                bullets.push({ x: x * CONFIG.cellSize + 40, y: y * CONFIG.cellSize + 40, row: y });
+                p.lastShot = Date.now();
+            }
+        }
+    }
+
+    // Cherry nổ
+    for (let y = 0; y < CONFIG.rows; y++) {
+        for (let x = 0; x < CONFIG.cols; x++) {
+            const p = grid[y][x];
+            if (p && p.name === 'Cherry' && p.explodeAt && !p.exploded && Date.now() >= p.explodeAt) {
+                p.exploded = true;
+                explosions.push({ x, y, time: Date.now() });
+
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (nx >= 0 && nx < CONFIG.cols && ny >= 0 && ny < CONFIG.rows) {
+                            zombies.forEach(z => {
+                                const zConf = CONFIG.zombieTypes.find(t => t.name === z.type);
+                                for (let dzr = 0; dzr < zConf.hitbox.rows; dzr++) {
+                                    for (let dzc = 0; dzc < zConf.hitbox.cols; dzc++) {
+                                        const zx = Math.floor(z.x / CONFIG.cellSize) + dzc;
+                                        const zy = z.row + dzr;
+                                        if (zx === nx && zy === ny) {
+                                            z.hp -= 999;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+
+                setTimeout(() => {
+                    if (grid[y][x] && grid[y][x].name === 'Cherry') grid[y][x] = null;
+                }, 100);
+            }
         }
     }
 }
@@ -153,9 +279,30 @@ function draw() {
     bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, 2 * Math.PI); ctx.fill(); });
 
     zombies.forEach(z => {
-        ctx.font = '30px sans-serif'; ctx.fillText('🧟', z.x, z.y + 60);
-        ctx.fillStyle = 'red'; ctx.fillRect(z.x - 20, z.y + 80, 80, 6);
-        ctx.fillStyle = 'lime'; ctx.fillRect(z.x - 20, z.y + 80, 80 * (z.hp / (CONFIG.baseZombieHP + (zLevel - 1) * 30)), 6);
+        const zConf = CONFIG.zombieTypes.find(t => t.name === z.type);
+        const w = zConf.hitbox.cols * CONFIG.cellSize;
+        const h = zConf.hitbox.rows * CONFIG.cellSize;
+
+        // Chọn biểu tượng và font
+        let emoji = '🧟', fontSize = '30px';
+        if (z.type === 'Slime') { emoji = '🟢'; fontSize = '100px'; }
+        else if (z.type === 'MiniSlime') { emoji = '🟩'; fontSize = '30px'; }
+
+        const iconX = z.x + w / 2 - 30;
+        const iconY = z.row * CONFIG.cellSize + h / 2 + 30;
+
+        ctx.font = fontSize + ' sans-serif';
+        ctx.fillText(emoji, iconX, iconY);
+
+        // Thanh máu
+        const barX = z.x;
+        const barY = z.row * CONFIG.cellSize + h + 5;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(barX, barY, w, 6);
+        ctx.fillStyle = 'lime';
+        const maxHP = zConf.hp + (zLevel - 1) * 30;
+        ctx.fillRect(barX, barY, w * (z.hp / maxHP), 6);
     });
 
     document.getElementById('sunCount').innerText = sun;
@@ -170,5 +317,18 @@ function draw() {
             const d = document.createElement('div'); d.className = 'cooldown'; d.innerText = Math.ceil(cd / 1000);
             p.el.appendChild(d);
         }
+    });
+
+    explosions = explosions.filter(e => Date.now() - e.time < 400);
+    explosions.forEach(e => {
+        const px = e.x * CONFIG.cellSize, py = e.y * CONFIG.cellSize;
+        ctx.fillStyle = 'orange';
+        ctx.beginPath();
+        ctx.arc(px + 40, py + 40, 40, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(px + 40, py + 40, 20, 0, 2 * Math.PI);
+        ctx.fill();
     });
 }
