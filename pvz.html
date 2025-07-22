@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Plants vs Zombies Canvas - Giao diện xanh</title>
+    <meta charset="UTF-8" />
+    <title>Plants vs Zombies</title>
     <style>
         body {
-            background: #222;
             margin: 0;
-            overflow: hidden;
-            user-select: none;
+            background: #222;
+            color: white;
+            font-family: sans-serif;
         }
 
         #container {
@@ -22,7 +22,6 @@
         #bottomBar {
             width: 1200px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 10px;
             box-sizing: border-box;
@@ -34,18 +33,7 @@
 
         #bottomBar {
             background: #1b5e20;
-            color: white;
-            font-size: 18px;
-        }
-
-        #canvasWrapper {
-            position: relative;
-        }
-
-        canvas {
-            display: block;
-            background: #4caf50;
-            border: 3px solid #fff;
+            justify-content: space-between;
         }
 
         #ui {
@@ -56,14 +44,18 @@
         .card {
             width: 60px;
             height: 60px;
-            font-size: 12px;
-            text-align: center;
             background: #fff3;
             border: 2px solid #fff;
             border-radius: 6px;
-            color: white;
+            text-align: center;
             cursor: pointer;
             position: relative;
+            white-space: pre-line;
+        }
+
+        .card.selected {
+            outline: 3px solid yellow;
+            background: #fffa;
         }
 
         .cooldown {
@@ -76,12 +68,38 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
         }
 
-        #pauseBtn {
-            padding: 6px 10px;
-            font-size: 16px;
+        canvas {
+            background: #4caf50;
+            border: 3px solid #fff;
+        }
+
+        #gameOverModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0008;
+            color: white;
+            font-size: 24px;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #gameOverModal button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 18px;
+        }
+
+        button#pauseBtn {
+            padding: 6px 12px;
+            margin-left: auto;
         }
     </style>
 </head>
@@ -92,255 +110,209 @@
             <div id="ui"></div>
             <button id="pauseBtn">⏸ Pause</button>
         </div>
-        <div id="canvasWrapper">
-            <canvas id="game" width="1200" height="600"></canvas>
-        </div>
+        <canvas id="game" width="1200" height="600"></canvas>
         <div id="bottomBar">
-            <div id="hud"></div>
+            <div>☀ Sun: <span id="sunCount">0</span></div>
+            <div>🧠 Score: <span id="score">0</span></div>
+            <div>🎯 Level: <span id="zLevel">1</span></div>
+            <div>⏱ Time: <span id="time">0</span>s</div>
         </div>
     </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" style="display:none;" class="modal">
+        <div>💀 Game Over!</div>
+        <div>🧠 Score: <span id="finalScore"></span></div>
+        <div>⏱ Time: <span id="finalTime"></span>s</div>
+        <div>🎯 Level: <span id="finalLevel"></span></div>
+        <button onclick="location.reload()">🔁 Chơi lại</button>
+    </div>
+
     <script>
         const CONFIG = {
-            rows: 6,
-            cols: 15,
-            cellSize: 80,
-            sunFallSpeed: 0.3,
-            sunflowerSunRate: 7000,
-            globalSunRate: 5000,
-            initialSun: 150,
-            peashooterCooldown: 5000,
-            sunflowerCooldown: 7000,
-            wallnutCooldown: 10000,
-            peashooterCost: 100,
-            sunflowerCost: 50,
-            wallnutCost: 75,
-            zombieSpawnRate: 3000,
-            zombieHealth: 100,
-            strongZombieHealth: 200,
+            rows: 6, cols: 15, cellSize: 80,
+            initialSun: 150, sunFallSpeed: 0.3, sunflowerRate: 7000, globalSunRate: 5000,
+            costs: { Sunflower: 50, Peashooter: 100, Wallnut: 75 },
+            cooldowns: { Sunflower: 5000, Peashooter: 3000, Wallnut: 8000 },
+            plantHP: { Sunflower: 60, Peashooter: 100, Wallnut: 300 },
+            baseZombieHP: 100, baseZombieSpeed: 0.5,
+            zombieSpawnRate: 2000, levelUpInterval: 30000, massAttackInterval: 120000
         };
 
-        const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
-        const ui = document.getElementById("ui");
-        const hud = document.getElementById("hud");
-        const pauseBtn = document.getElementById("pauseBtn");
-        ctx.fillStyle = '#4caf50';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawGrid(ctx);
-
+        const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+        let sun = CONFIG.initialSun, score = 0, zLevel = 1, gameTime = 0, lastLevelUp = 0, lastMassAttack = 0;
+        let paused = false, selected = null, shovel = false, lastPlant = {};
         let grid = Array.from({ length: CONFIG.rows }, () => Array(CONFIG.cols).fill(null));
-        let sun = CONFIG.initialSun;
-        let selectedPlant = null;
-        let lastPlantTime = {};
-        let suns = [];
-        let zombies = [];
-        let bullets = [];
-        let score = 0;
-        let paused = false;
-        let shovelMode = false;
-
+        let suns = [], zombies = [], bullets = [];
         const plantTypes = [
-            { name: 'Sunflower', icon: '🌻', cost: CONFIG.sunflowerCost, cooldown: CONFIG.sunflowerCooldown },
-            { name: 'Peashooter', icon: '🌱', cost: CONFIG.peashooterCost, cooldown: CONFIG.peashooterCooldown },
-            { name: 'Wall-nut', icon: '🌵', cost: CONFIG.wallnutCost, cooldown: CONFIG.wallnutCooldown },
-            { name: 'Shovel', icon: '🪓', cost: 0, cooldown: 0 },
+            { name: 'Shovel', icon: '🪓' },
+            { name: 'Sunflower', icon: '🌻' },
+            { name: 'Peashooter', icon: '🌱' },
+            { name: 'Wallnut', icon: '🌵' }
         ];
 
+        const ui = document.getElementById('ui');
         plantTypes.forEach(p => {
-            const btn = document.createElement("div");
-            btn.className = "card";
-            btn.innerText = p.icon + "\n" + (p.name === 'Shovel' ? '' : p.cost);
+            const btn = document.createElement('div'); btn.className = 'card';
+            btn.innerText = p.icon + (p.name !== 'Shovel' ? '\n' + CONFIG.costs[p.name] : '');
             btn.onclick = () => {
-                if (p.name === 'Shovel') {
-                    shovelMode = true;
-                    selectedPlant = null;
-                } else if (Date.now() - (lastPlantTime[p.name] || 0) >= p.cooldown) {
-                    selectedPlant = p;
-                    shovelMode = false;
+                plantTypes.forEach(p2 => p2.el.classList.remove('selected'));
+                if (p.name === 'Shovel') { shovel = true; selected = null; }
+                else if (Date.now() - (lastPlant[p.name] || 0) >= CONFIG.cooldowns[p.name]) {
+                    selected = p; shovel = false; btn.classList.add('selected');
                 }
             };
-            p._el = btn;
-            ui.appendChild(btn);
+            p.el = btn; ui.appendChild(btn);
         });
 
-        canvas.addEventListener("click", e => {
+        document.getElementById('pauseBtn').onclick = () => {
+            paused = !paused;
+            document.getElementById('pauseBtn').innerText = paused ? '▶ Resume' : '⏸ Pause';
+        };
+
+        canvas.addEventListener('click', e => {
             if (paused) return;
-            const x = Math.floor(e.offsetX / CONFIG.cellSize);
-            const y = Math.floor(e.offsetY / CONFIG.cellSize);
-            if (shovelMode) {
-                grid[y][x] = null;
-                return;
+            const x = Math.floor(e.offsetX / CONFIG.cellSize), y = Math.floor(e.offsetY / CONFIG.cellSize);
+            if (shovel && grid[y][x]) { grid[y][x] = null; }
+            else if (selected && !grid[y][x] && sun >= CONFIG.costs[selected.name]) {
+                grid[y][x] = { ...selected, hp: CONFIG.plantHP[selected.name], lastShot: 0 };
+                sun -= CONFIG.costs[selected.name];
+                lastPlant[selected.name] = Date.now();
+                selected = null;
+                plantTypes.forEach(p => p.el.classList.remove('selected'));
             }
-            if (!selectedPlant || grid[y][x]) return;
-            if (sun < selectedPlant.cost) return;
-            grid[y][x] = { ...selectedPlant, hp: selectedPlant.name === 'Wall-nut' ? 500 : 100, x, y, lastShot: 0 };
-            sun -= selectedPlant.cost;
-            lastPlantTime[selectedPlant.name] = Date.now();
-            selectedPlant = null;
         });
 
-        canvas.addEventListener("mousemove", e => {
+        canvas.addEventListener('mousemove', e => {
             if (paused) return;
-            const mx = e.offsetX, my = e.offsetY;
             suns = suns.filter(s => {
-                const dx = s.x - mx, dy = s.y - my;
-                if (dx * dx + dy * dy < 400) {
-                    sun += 25;
-                    return false;
-                }
+                const dx = s.x - e.offsetX, dy = s.y - e.offsetY;
+                if (dx * dx + dy * dy < 900) { sun += 25; return false; }
                 return true;
             });
         });
 
-        function drawGrid(ctx) {
-            ctx.strokeStyle = 'black';
-            for (let r = 0; r < CONFIG.rows; r++) {
-                for (let c = 0; c < CONFIG.cols; c++) {
-                    ctx.strokeRect(c * CONFIG.cellSize, r * CONFIG.cellSize, CONFIG.cellSize, CONFIG.cellSize);
-                }
+        setInterval(() => { if (!paused) suns.push({ x: Math.random() * (canvas.width - 40) + 20, y: 0, vy: CONFIG.sunFallSpeed }); }, CONFIG.globalSunRate);
+        setInterval(() => {
+            if (!paused) {
+                grid.forEach((row, y) => row.forEach((c, x) => c && c.name === 'Sunflower' && suns.push({ x: x * CONFIG.cellSize + 30, y: y * CONFIG.cellSize + 30, vy: CONFIG.sunFallSpeed })));
             }
-        }
+        }, CONFIG.sunflowerRate);
 
-        function spawnSunflowerSun() {
+        setInterval(() => {
             if (paused) return;
-            grid.forEach(row => {
-                row.forEach(cell => {
-                    if (cell && cell.name === "Sunflower") {
-                        suns.push({ x: cell.x * CONFIG.cellSize + 30, y: cell.y * CONFIG.cellSize, vy: CONFIG.sunFallSpeed });
-                    }
-                });
-            });
-        }
-
-        function spawnGlobalSun() {
-            if (paused) return;
-            suns.push({ x: Math.random() * (canvas.width - 40) + 20, y: 0, vy: CONFIG.sunFallSpeed });
-        }
-
-        function getRandomRow() {
-            return Math.floor(Math.random() * CONFIG.rows);
-        }
-
-        function spawnZombie() {
-            if (paused) return;
-            let row = getRandomRow();
-            const strong = Math.random() < 0.3;
+            const row = Math.floor(Math.random() * CONFIG.rows);
             zombies.push({
-                x: canvas.width,
-                y: row * CONFIG.cellSize + 10,
-                row,
-                hp: strong ? CONFIG.strongZombieHealth : CONFIG.zombieHealth,
-                speed: 0.2,
-                score: strong ? 50 : 20,
-                eating: false,
+                x: canvas.width, y: row * CONFIG.cellSize, hp: CONFIG.baseZombieHP + (zLevel - 1) * 30,
+                speed: CONFIG.baseZombieSpeed + (zLevel - 1) * 0.1, row
             });
+        }, CONFIG.zombieSpawnRate);
+
+        function massAttack() {
+            for (let i = 0; i < CONFIG.rows; i++) {
+                zombies.push({
+                    x: canvas.width + Math.random() * 200,
+                    y: i * CONFIG.cellSize,
+                    hp: CONFIG.baseZombieHP + (zLevel - 1) * 30,
+                    speed: CONFIG.baseZombieSpeed + (zLevel - 1) * 0.1,
+                    row: i
+                });
+            }
         }
 
-        function update() {
-            if (paused) return requestAnimationFrame(update);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let y = 0; y < CONFIG.rows; y++) {
-                for (let x = 0; x < CONFIG.cols; x++) {
-                    ctx.strokeStyle = "#fff1";
-                    ctx.strokeRect(x * CONFIG.cellSize, y * CONFIG.cellSize, CONFIG.cellSize, CONFIG.cellSize);
-                    const plant = grid[y][x];
-                    if (plant) {
-                        ctx.font = "30px serif";
-                        ctx.fillText(plant.icon, x * CONFIG.cellSize + 25, y * CONFIG.cellSize + 50);
-                        if (plant.name === "Peashooter" && Date.now() - plant.lastShot > 1000) {
-                            bullets.push({ x: plant.x * CONFIG.cellSize + 40, y: plant.y * CONFIG.cellSize + 20 });
-                            plant.lastShot = Date.now();
-                        }
-                    }
-                }
+        let lastTS = performance.now();
+        function loop(ts) {
+            const dt = ts - lastTS; lastTS = ts;
+            if (!paused) {
+                gameTime += dt;
+                if (gameTime - lastLevelUp >= CONFIG.levelUpInterval) { zLevel++; lastLevelUp = gameTime; }
+                if (gameTime - lastMassAttack >= CONFIG.massAttackInterval) { massAttack(); lastMassAttack = gameTime; }
+                update(dt); draw();
             }
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
 
-            ctx.fillStyle = "yellow";
-            suns.forEach(s => {
-                s.y += s.vy;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, 15, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.fillStyle = "green";
-            bullets.forEach(b => {
-                b.x += 4;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            zombies.forEach(z => {
-                const cell = grid[z.row][Math.floor(z.x / CONFIG.cellSize)];
-                if (cell) {
-                    z.eating = true;
-                    cell.hp -= 0.3;
-                    if (cell.hp <= 0) grid[z.row][cell.x] = null;
-                } else {
-                    z.x -= z.speed;
-                    z.eating = false;
-                }
-                ctx.font = "30px serif";
-                ctx.fillText(z.hp > 100 ? "🧟‍♀️" : "🧟", z.x, z.y + 30);
-                ctx.fillStyle = "red";
-                ctx.fillRect(z.x, z.y, Math.max(0, z.hp / 2), 4);
-                ctx.fillStyle = "green";
-            });
-
+        function update(dt) {
             bullets = bullets.filter(b => {
+                b.x += 5;
                 for (const z of zombies) {
-                    if (Math.abs(b.y - z.y - 20) < 20 && Math.abs(b.x - z.x) < 20) {
-                        z.hp -= 20;
-                        return false;
+                    if (z.row === b.row && Math.hypot(b.y - (z.y + 30), b.x - z.x) < 30) {
+                        z.hp -= 20; return false;
                     }
                 }
                 return b.x < canvas.width;
             });
 
             zombies = zombies.filter(z => {
+                const cx = Math.floor(z.x / CONFIG.cellSize), cy = z.row;
+                if (grid[cy][cx]) {
+                    const p = grid[cy][cx]; p.hp -= 0.5;
+                    if (p.hp <= 0) grid[cy][cx] = null;
+                } else z.x -= z.speed;
+                if (z.hp <= 0) { score += 10; return false; }
                 if (z.x < 0) {
-                    alert("Thua!");
-                    location.reload();
-                    return false;
-                }
-                if (z.hp <= 0) {
-                    score += z.score;
+                    paused = true;
+                    document.getElementById('finalScore').innerText = score;
+                    document.getElementById('finalTime').innerText = Math.floor(gameTime / 1000);
+                    document.getElementById('finalLevel').innerText = zLevel;
+                    document.getElementById('gameOverModal').style.display = 'flex';
                     return false;
                 }
                 return true;
             });
 
-            plantTypes.forEach(p => {
-                const cd = p.cooldown - (Date.now() - (lastPlantTime[p.name] || 0));
-                p._el.innerHTML = p.icon + "\n" + (p.name === 'Shovel' ? '' : p.cost);
-                p._el.style.background = selectedPlant === p ? "#fffa" : "#fff3";
-                p._el.querySelector(".cooldown")?.remove();
-                if (cd > 0 && p.name !== 'Shovel') {
-                    const div = document.createElement("div");
-                    div.className = "cooldown";
-                    div.innerText = Math.ceil(cd / 1000);
-                    p._el.appendChild(div);
+            for (let y = 0; y < CONFIG.rows; y++) for (let x = 0; x < CONFIG.cols; x++) {
+                const p = grid[y][x];
+                if (p && p.name === 'Peashooter' && Date.now() - p.lastShot > 1000) {
+                    bullets.push({ x: x * CONFIG.cellSize + 40, y: y * CONFIG.cellSize + 40, row: y });
+                    p.lastShot = Date.now();
                 }
-            });
-
-            hud.innerText = `☀ ${sun}     🧟‍♂️ Điểm: ${score}`;
-
-            requestAnimationFrame(update);
+            }
         }
 
-        pauseBtn.onclick = () => {
-            paused = !paused;
-            pauseBtn.innerText = paused ? '▶ Resume' : '⏸ Pause';
-            if (!paused) update();
-        };
+        function draw() {
+            ctx.fillStyle = '#4caf50'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 1;
+            for (let r = 0; r < CONFIG.rows; r++) for (let c = 0; c < CONFIG.cols; c++) {
+                ctx.strokeRect(c * CONFIG.cellSize, r * CONFIG.cellSize, CONFIG.cellSize, CONFIG.cellSize);
+            }
 
-        setInterval(spawnSunflowerSun, CONFIG.sunflowerSunRate);
-        setInterval(spawnGlobalSun, CONFIG.globalSunRate);
-        setInterval(spawnZombie, CONFIG.zombieSpawnRate);
-        update();
+            for (let y = 0; y < CONFIG.rows; y++) for (let x = 0; x < CONFIG.cols; x++) {
+                const p = grid[y][x];
+                if (p) {
+                    ctx.font = '30px sans-serif'; ctx.fillText(p.icon, x * CONFIG.cellSize + 20, y * CONFIG.cellSize + 50);
+                    ctx.fillStyle = 'red'; ctx.fillRect(x * CONFIG.cellSize + 10, y * CONFIG.cellSize + 60, 60, 6);
+                    ctx.fillStyle = 'lime'; ctx.fillRect(x * CONFIG.cellSize + 10, y * CONFIG.cellSize + 60, 60 * (p.hp / CONFIG.plantHP[p.name]), 6);
+                }
+            }
+
+            ctx.font = '25px sans-serif';
+            suns.forEach(s => { s.y += s.vy; ctx.fillText('☀️', s.x, s.y); });
+
+            ctx.fillStyle = 'yellow';
+            bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, 2 * Math.PI); ctx.fill(); });
+
+            zombies.forEach(z => {
+                ctx.font = '30px sans-serif'; ctx.fillText('🧟', z.x, z.y + 60);
+                ctx.fillStyle = 'red'; ctx.fillRect(z.x - 20, z.y + 80, 80, 6);
+                ctx.fillStyle = 'lime'; ctx.fillRect(z.x - 20, z.y + 80, 80 * (z.hp / (CONFIG.baseZombieHP + (zLevel - 1) * 30)), 6);
+            });
+
+            document.getElementById('sunCount').innerText = sun;
+            document.getElementById('score').innerText = score;
+            document.getElementById('zLevel').innerText = zLevel;
+            document.getElementById('time').innerText = Math.floor(gameTime / 1000);
+
+            plantTypes.forEach(p => {
+                const cd = CONFIG.cooldowns[p.name] - (Date.now() - (lastPlant[p.name] || 0));
+                p.el.querySelector('.cooldown')?.remove();
+                if (p.name !== 'Shovel' && cd > 0) {
+                    const d = document.createElement('div'); d.className = 'cooldown'; d.innerText = Math.ceil(cd / 1000);
+                    p.el.appendChild(d);
+                }
+            });
+        }
     </script>
 </body>
 
