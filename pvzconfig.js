@@ -47,15 +47,15 @@ const CONFIG = {
             name: 'Conehead',
             hp: 200,
             speed: 0.25,
-            probability: 0.2,
+            probability: 0.3,
             hitbox: { width: 80, height: 80, rows: 1, cols: 1 }
         },
         {
             name: 'Slime',
             hp: 400,
             speed: 0.2,
-            probability: 0.8,
-            minLevel: 1,
+            probability: 0.5,
+            minLevel: 5,
             hitbox: { width: 160, height: 160, rows: 2, cols: 2 }
         },
         {
