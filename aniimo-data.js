@@ -122,10 +122,9 @@ const DEX_RAW=[
   ["10002","Dazmand","dazmand","Nova","Support",["lightning"],["lightning"],[100,108,81,90,55,88],[]],
   ["10003","Fulmintis","fulmintis","Nova","DPS",["lightning"],["lightning"],[99,130,66,70,50,105],[["Prismana",["light","lightning"]]]],
   ["11001","Sparkelf","sparkelf","Nova","Support",["fire"],["fire"],[107,113,60,88,50,99],[]],
-  ["99995","Fennelun","fennelun","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
-  ["99996","Lunara","lunara","Lumin","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
-  ["99997","Soleon","soleon","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
-  ["99998","Helion","helion","Lumin","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
+  // Lunara, Helion: tên tự đặt lại (Aniidex ghi Fennelun, Soleon); slug giữ nguyên để link và tier list khớp Aniidex
+  ["99995","Lunara","fennelun","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
+  ["99997","Helion","soleon","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
 ];
 
 // Tier list theo vai trò (https://aniidex.com/tier-list/, cập nhật 25/09/2026).
