@@ -482,7 +482,7 @@ function renderTeamResults(){
     <td>${comboChips(m.d.els)}</td>
     ${en.map((e,j)=>`<td class="c"><div class="per-el">${m.d.atk.map(a=>{
       const v=hit(a,e.types);
-      return cell(v/m.def[j],'atk',`Chiêu ${T[a].name}: đánh ×${fmt(v)} ÷ nhận ×${fmt(m.def[j])}`).replace('">×',`"><i style="--tc:${T[a].c}"></i>×`);
+      return cell(v,'atk',`Chiêu ${T[a].name}: đánh ×${fmt(v)} · mình nhận ×${fmt(m.def[j])}`).replace('">×',`"><i style="--tc:${T[a].c}"></i>×`);
     }).join('')}</div></td>`).join('')}
     <td class="num">×${m.score.toFixed(2)}</td><td class="num best">${m.final.toFixed(2)}</td></tr>`).join('');
   const roleHtml=ROLES.map(role=>{
@@ -523,7 +523,7 @@ function renderTeamResults(){
       <div class="filters">
         <label>Vai trò <select id="f-role" data-f="role">${opt('all',f.role,'Tất cả')}${['DPS','Break','Support','Regen','Heal'].map(s=>opt(s,f.role,s)).join('')}</select></label>
       </div></div>
-    <p class="note">Mỗi ô đối thủ = sát thương mình gây ÷ sát thương mình nhận (vd đánh ×1.6, nhận ×1 → ×1.6). Aniimo có chiêu 2 hệ hiện 2 tỉ lệ, chấm màu là hệ chiêu. Trên ×1 là có lợi, dưới ×1 là bất lợi; rê chuột vào ô để xem số gốc.</p>
+    <p class="note">Mỗi ô đối thủ = sát thương mình đánh lên con đó theo từng hệ chiêu (chấm màu là hệ chiêu); Aniimo có chiêu 2 hệ hiện 2 dòng. Rê chuột vào ô để xem thêm sát thương mình nhận. Cột Lợi thế hệ vẫn tính cả đánh lẫn nhận (gây TB ÷ nhận TB).</p>
     <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Aniimo</th><th>Hệ</th>${enHead}<th class="c">Lợi thế hệ</th><th class="c">Điểm</th></tr></thead><tbody>${sugRows}</tbody></table></div>
     ${pool.length>15?`<div><button class="btn" type="button" data-act="sug-all">${S.sugAll?'Thu gọn top 15':`Xem tất cả ${pool.length}`}</button></div>`:''}</div>
   <div class="card"><div class="card-h"><h2>Hệ tấn công tốt nhất</h2><span class="hint">Cao → thấp theo hệ số trung bình lên cả đội địch</span></div>
