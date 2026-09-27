@@ -139,6 +139,9 @@ table.tbl:not(.cmp){border-spacing:0 2px}
 .elfilter .pick{padding:6px 10px;font-size:13px}
 .rolepick.filler .dexcard{opacity:.72}
 .fill-tag{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.per-el{display:inline-flex;flex-direction:column;gap:3px;align-items:stretch}
+.per-el .m{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:64px}
+.per-el .m i{width:8px;height:8px;border-radius:50%;background:var(--tc);flex:none}
 .rolegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
 @media (min-width:1100px){#team-editor .slots{grid-template-columns:repeat(4,minmax(0,1fr))}.rolegrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .rolecol{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -278,12 +281,14 @@ const DEFAULT={
   combo:['fire','water'],
   compare:[['fire','water'],['grass','ice'],['dark','wind','earth']],
   enemies:defaultEnemies(),
-  defSize:2,showAll:false,sug:{stage:'Nova',role:'all',forms:false,mode:'tier',minTier:'all',els:[]},sugAll:false
+  defSize:2,showAll:false,sug:{stage:'Nova',role:'all',forms:true,mode:'tier',minTier:'all',els:[]},sugAll:false
 };
 let S=JSON.parse(JSON.stringify(DEFAULT));
 try{const saved=JSON.parse(localStorage.getItem('aniimo-khac-he')||'null');if(saved&&saved.combo)S=Object.assign(S,saved);}catch(e){}
 S.sug=Object.assign({},DEFAULT.sug,S.sug);
 if(!Array.isArray(S.sug.els))S.sug.els=[];
+// Bản trước mặc định tắt dạng khác nên các dạng Prismana hạng S bị ẩn: bật lại một lần cho dữ liệu đã lưu
+if(!S.sug.formsV2){S.sug.forms=true;S.sug.formsV2=true;}
 function save(){try{localStorage.setItem('aniimo-khac-he',JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
 
@@ -475,7 +480,10 @@ function renderTeamResults(){
   const sugRows=pool.slice(0,limit).map((m,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td>
     <td>${tierBadge(m.d.tier,m.d.tierCustom)}<a class="dexlink" href="${dexUrl(m.d)}" target="_blank" rel="noopener">${esc(m.d.name)}</a>${m.d.form?` <small class="hint">${esc(m.d.form)}</small>`:''}<div class="hint">${[m.d.stage,m.d.role].filter(Boolean).join(' · ')} · ${m.d.total}</div></td>
     <td>${comboChips(m.d.els)}</td>
-    ${m.edge.map((v,j)=>`<td class="c">${cell(v,'atk',`Đánh ×${fmt(m.off[j])} ÷ nhận ×${fmt(m.def[j])}`)}</td>`).join('')}
+    ${en.map((e,j)=>`<td class="c"><div class="per-el">${m.d.atk.map(a=>{
+      const v=hit(a,e.types);
+      return cell(v/m.def[j],'atk',`Chiêu ${T[a].name}: đánh ×${fmt(v)} ÷ nhận ×${fmt(m.def[j])}`).replace('">×',`"><i style="--tc:${T[a].c}"></i>×`);
+    }).join('')}</div></td>`).join('')}
     <td class="num">×${m.score.toFixed(2)}</td><td class="num best">${m.final.toFixed(2)}</td></tr>`).join('');
   const roleHtml=ROLES.map(role=>{
     const top=topByRole(base,role,4,f.mode!=='type');
@@ -515,7 +523,7 @@ function renderTeamResults(){
       <div class="filters">
         <label>Vai trò <select id="f-role" data-f="role">${opt('all',f.role,'Tất cả')}${['DPS','Break','Support','Regen','Heal'].map(s=>opt(s,f.role,s)).join('')}</select></label>
       </div></div>
-    <p class="note">Mỗi ô đối thủ = sát thương mình gây ÷ sát thương mình nhận (vd đánh ×1.6, nhận ×1 → ×1.6). Trên ×1 là có lợi, dưới ×1 là bất lợi; rê chuột vào ô để xem hai số gốc.</p>
+    <p class="note">Mỗi ô đối thủ = sát thương mình gây ÷ sát thương mình nhận (vd đánh ×1.6, nhận ×1 → ×1.6). Aniimo có chiêu 2 hệ hiện 2 tỉ lệ, chấm màu là hệ chiêu. Trên ×1 là có lợi, dưới ×1 là bất lợi; rê chuột vào ô để xem số gốc.</p>
     <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Aniimo</th><th>Hệ</th>${enHead}<th class="c">Lợi thế hệ</th><th class="c">Điểm</th></tr></thead><tbody>${sugRows}</tbody></table></div>
     ${pool.length>15?`<div><button class="btn" type="button" data-act="sug-all">${S.sugAll?'Thu gọn top 15':`Xem tất cả ${pool.length}`}</button></div>`:''}</div>
   <div class="card"><div class="card-h"><h2>Hệ tấn công tốt nhất</h2><span class="hint">Cao → thấp theo hệ số trung bình lên cả đội địch</span></div>
