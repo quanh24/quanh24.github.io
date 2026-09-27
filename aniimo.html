@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aniimo Khắc Hệ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#10121a; --surface:#181b26; --surface-2:#212534; --line:#2c3142;
+  --text:#e9ebf3; --muted:#8e95aa; --accent:#9a8bff; --accent-ink:#120f24;
+  --b2-bg:#6a2330; --b2-fg:#ffd6d0; --b1-bg:#3f2229; --b1-fg:#ff9d8f;
+  --n-bg:#232735; --n-fg:#9aa1b5;
+  --g1-bg:#1b3629; --g1-fg:#7be3a6; --g2-bg:#1d5237; --g2-fg:#caf8dc;
+  --display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --bg:#f2f3f8; --surface:#ffffff; --surface-2:#f0f1f6; --line:#dde0ea;
+    --text:#161925; --muted:#5b6275; --accent:#5b45e0; --accent-ink:#ffffff;
+    --b2-bg:#f3b7ae; --b2-fg:#6b1409; --b1-bg:#fbe0dc; --b1-fg:#a12a1a;
+    --n-bg:#eceef4; --n-fg:#5b6275;
+    --g1-bg:#d9f2e3; --g1-fg:#146a3b; --g2-bg:#a9e3c2; --g2-fg:#0b4526;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f2f3f8; --surface:#ffffff; --surface-2:#f0f1f6; --line:#dde0ea;
+  --text:#161925; --muted:#5b6275; --accent:#5b45e0; --accent-ink:#ffffff;
+  --b2-bg:#f3b7ae; --b2-fg:#6b1409; --b1-bg:#fbe0dc; --b1-fg:#a12a1a;
+  --n-bg:#eceef4; --n-fg:#5b6275;
+  --g1-bg:#d9f2e3; --g1-fg:#146a3b; --g2-bg:#a9e3c2; --g2-fg:#0b4526;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--body)}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.brand{font:700 13px/1 var(--display);letter-spacing:.32em;color:var(--accent);text-transform:uppercase}
+h1{font:700 clamp(26px,4vw,36px)/1.1 var(--display);margin:6px 0 0;text-wrap:balance}
+h2{font:600 18px/1.2 var(--display);margin:0;letter-spacing:.02em}
+h3{font:600 13px/1.2 var(--body);margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.legend{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+.tabs button{flex:1 0 auto;border:0;background:transparent;color:var(--muted);font:600 14px/1.2 var(--body);padding:10px 14px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.tabs button:hover:not([aria-selected="true"]){color:var(--text);background:var(--surface-2)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.hint{font-size:13px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.picker{display:flex;flex-wrap:wrap;gap:6px}
+.pick{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font:500 14px/1 var(--body);cursor:pointer}
+.pick i,.tc i{width:10px;height:10px;border-radius:50%;background:var(--tc);flex:none}
+.pick[aria-pressed="true"]{background:color-mix(in srgb,var(--tc) 22%,var(--surface));border-color:var(--tc);color:var(--text);font-weight:600}
+.pick:disabled{opacity:.35;cursor:not-allowed}
+.tc{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;border-radius:999px;background:color-mix(in srgb,var(--tc) 16%,transparent);border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);font-weight:600;font-size:13px;white-space:nowrap}
+.combo{display:inline-flex;flex-wrap:wrap;gap:4px}
+.m{display:inline-block;min-width:58px;padding:5px 8px;border-radius:8px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;font-size:14px}
+.m.b2{background:var(--b2-bg);color:var(--b2-fg)} .m.b1{background:var(--b1-bg);color:var(--b1-fg)}
+.m.n{background:var(--n-bg);color:var(--n-fg)}
+.m.g1{background:var(--g1-bg);color:var(--g1-fg)} .m.g2{background:var(--g2-bg);color:var(--g2-fg)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font:700 24px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.groups{display:flex;flex-direction:column;gap:8px}
+.grp{display:grid;grid-template-columns:128px 1fr;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.grp:first-child{border-top:0}
+.grp .lbl{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.grid9{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.g9{display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:var(--surface-2);border-radius:10px;padding:10px}
+.g9 small{font-size:12px;color:var(--muted)}
+.scroll{overflow-x:auto;margin-inline:-4px;padding-inline:4px}
+table.tbl{border-collapse:separate;border-spacing:4px;width:100%;font-size:14px}
+.tbl th{font:600 12px/1.3 var(--body);color:var(--muted);text-align:left;padding:4px 6px;vertical-align:bottom;white-space:nowrap}
+.tbl td{padding:2px 4px;vertical-align:middle}
+table.tbl:not(.cmp){border-spacing:0 2px}
+.tbl:not(.cmp) th{padding:6px 8px}
+.tbl:not(.cmp) tbody td{padding:6px 8px}
+.tbl:not(.cmp) tbody tr:nth-child(even) td{background:var(--surface-2)}
+.tbl:not(.cmp) tbody tr:hover td{background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.tbl:not(.cmp) tbody td:first-child{border-radius:8px 0 0 8px}
+.tbl:not(.cmp) tbody td:last-child{border-radius:0 8px 8px 0}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl tfoot td{padding-top:6px;font-variant-numeric:tabular-nums}
+.tbl tfoot tr:first-child td{border-top:1px solid var(--line)}
+.tbl.cmp tbody td{background:var(--surface-2);border-radius:8px;padding:8px;vertical-align:top}
+.tbl.cmp tbody td:first-child{background:transparent;padding-left:0}
+.tbl.cmp .lbl{display:flex;flex-direction:column;gap:3px;font-size:12px}
+.tbl.cmp .grpcell{min-width:150px}
+.tbl .num{font-variant-numeric:tabular-nums;font-weight:600;text-align:center}
+.tbl .best{color:var(--accent);font-weight:700}
+.tbl .rk{font:700 14px/1 var(--display);color:var(--muted);text-align:center;width:32px}
+.tbl tr.top .rk{color:var(--accent)}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.slot{background:var(--surface-2);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.slot-h{display:flex;gap:8px;align-items:center}
+.slot-h .tag{font:700 14px/1 var(--display);color:var(--accent);min-width:22px}
+.slot input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font:500 14px var(--body)}
+.slot .pick{padding:6px 10px;font-size:13px}
+.btn{border:1px solid var(--line);background:var(--surface-2);color:var(--text);font:600 14px/1 var(--body);padding:9px 14px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+.btn.ghost:hover{color:var(--b1-fg)}
+.seg{display:inline-flex;gap:2px;padding:3px;background:var(--surface-2);border-radius:10px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px/1 var(--body);padding:8px 12px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 0 0 1px var(--line)}
+.rank{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.rank li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 10px;background:var(--surface-2);border-radius:10px}
+.rank li .pos{font:700 16px/1 var(--display);color:var(--muted);width:22px}
+.rank li:first-child .pos{color:var(--accent)}
+.rank li .meta{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);margin:0;padding:12px;border:1px dashed var(--line);border-radius:10px;text-align:center}
+.quick{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dexlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.dexcard{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid transparent;color:var(--text);text-decoration:none}
+.dexcard:hover{border-color:var(--accent)}
+.dexname{font:600 15px/1.2 var(--display)}
+.dexname small{color:var(--muted);font-weight:500}
+.dexname em{display:block;font:500 12px var(--body);font-style:normal;color:var(--accent)}
+.dexmeta{font-size:12px;color:var(--muted)}
+.rolegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+@media (min-width:1100px){#team-editor .slots{grid-template-columns:repeat(4,minmax(0,1fr))}.rolegrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.rolecol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.role-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.role-tag{font:700 14px/1 var(--display);letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+.rolepick{display:grid;grid-template-columns:20px 1fr;gap:6px;align-items:start}
+.rp-rank{font:700 15px/1 var(--display);color:var(--muted);padding-top:12px;text-align:center}
+.role-h+.rolepick .rp-rank{color:var(--accent)}
+.rp-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rp-score{color:var(--text)}
+.dexlink{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px dotted var(--muted)}
+.dexlink:hover{color:var(--accent)}
+.tbl td.pair{white-space:nowrap}
+.tbl td.pair .m{min-width:50px;font-size:13px}
+.tbl td.pair .m+.m{margin-left:3px}
+.rank li .meta .m{min-width:0;font-size:12px;padding:2px 6px}
+.cbox{position:relative;flex:1;min-width:0;display:flex}
+.cb-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;max-height:300px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.cb-list:not([hidden]){min-width:240px}
+.cb-opt{display:flex;flex-direction:column;gap:5px;padding:8px 10px;border-radius:8px;cursor:pointer}
+.cb-opt[aria-selected="true"]{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--accent)}
+.cb-opt:hover{background:var(--surface-2)}
+.cb-name{font-weight:600;font-size:14px}
+.cb-name small{color:var(--muted);font-weight:500}
+.cb-name em{font-style:normal;font-size:12px;color:var(--accent)}
+.cb-opt .tc{font-size:12px;padding:2px 8px 2px 6px}
+.cb-empty{padding:10px;font-size:13px;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--muted)}
+.filters select{margin-left:4px;background:var(--surface-2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:500 13px var(--body)}
+.filters .chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+@media (max-width:520px){.grp{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.pick,.tabs button,.btn{transition:background-color .15s,border-color .15s,color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">Aniimo</div>
+      <h1>Phân tích khắc hệ</h1>
+    </div>
+    <div class="legend" aria-label="Chú thích hệ số">
+      <span class="m b2">×2.56</span><span class="m b1">×1.6</span><span class="m n">×1</span><span class="m g1">×0.625</span><span class="m g2">×0.39</span>
+      <span>Khắc ×1.6 · Bị kháng ×0.625 · Đa hệ nhân dồn</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-combo" data-tab="combo">1 · Bộ hệ</button>
+    <button role="tab" id="tab-compare" data-tab="compare">2 · So sánh bộ hệ</button>
+    <button role="tab" id="tab-team" data-tab="team">3 · Đối đầu đội hình</button>
+  </nav>
+
+  <section class="panel" id="p-combo"></section>
+  <section class="panel" id="p-compare" hidden></section>
+  <section class="panel" id="p-team" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Đội hình địch</h2><span class="hint">Tối đa 4 con, mỗi con 1–3 hệ</span></div>
+      <div id="team-editor"></div>
+    </div>
+    <div id="team-results" class="panel"></div>
+  </section>
+</div>
+
+<script>
+const TYPES=[
+  ['dark','Dark','#9d6bff'],['earth','Earth','#b08450'],['fire','Fire','#f0473f'],
+  ['grass','Grass','#2fc46a'],['ice','Ice','#3cc4dc'],['light','Light','#f6a019'],
+  ['lightning','Lightning','#e8c21a'],['water','Water','#3f86ea'],['wind','Wind','#1bb89a']
+].map(([id,name,c])=>({id,name,c}));
+const T=Object.fromEntries(TYPES.map(t=>[t.id,t]));
+// Hàng = hệ tấn công, cột = hệ phòng thủ (thứ tự như TYPES). + khắc, - bị kháng, 0 bình thường
+const CHART=["000+0++--","--+-+00-0","0--++-0-0","0+--0-0+0","0--0-0++0","+0000--0+","0-00-0-++","0++---0-0","+00+00-0-"];
+const VAL={'+':1.6,'-':0.625,'0':1};
+const M={};
+TYPES.forEach((a,i)=>{M[a.id]={};TYPES.forEach((d,j)=>{M[a.id][d.id]=VAL[CHART[i][j]];});});
+
+// Dữ liệu Aniimo lấy từ aniidex.com (dạng gốc + dạng khác có hệ khác dạng gốc)
+// [số, tên, slug, giai đoạn, vai trò, hệ, hệ chiêu, [HP,ATK,P.DEF,M.DEF,BREAK,REGEN], [[tên dạng, hệ]]]
+const DEX_RAW=[["001","Emberpup","emberpup","Lumin","DPS",["fire"],["fire"],[67,90,60,57,40,68],[["Highland",["fire","earth"]]]],["002","Flameruff","flameruff","Gamma","DPS",["fire"],["fire"],[85,111,72,63,45,80],[["Highland",["fire","earth"]]]],["003","Scorchhowl","scorchhowl","Nova","DPS",["fire"],["fire"],[95,119,80,75,52,90],[["Highland",["fire","earth"]],["Thunderstorm",["lightning","fire"]]]],["004","Inferlupa","inferlupa","Nova","Break",["dark","fire"],["dark","fire"],[95,89,70,80,108,99],[]],["005","Celestis","celestis","Lumin","DPS",["dark"],["dark"],[81,106,58,58,46,80],[]],["006","Stellarys","stellarys","Nova","DPS",["dark"],["dark"],[95,125,68,69,54,94],[["Rainstorm",["dark","water"]],["Prismana",["dark","ice"]]]],["007","Chirpi","chirpi","Lumin","Support",["wind"],["wind"],[97,83,67,69,43,93],[["Beach",["water","wind"]],["Highland",["grass","wind"]]]],["008","Tromber","tromber","Nova","Support",["wind"],["wind"],[113,119,79,81,51,88],[["Beach",["water","wind"]],["Highland",["grass","wind"]]]],["009","Cornet","cornet","Nova","DPS",["wind"],["wind"],[96,121,74,70,54,94],[["Beach",["water","wind"]],["Prismana",["lightning","wind"]],["Highland",["grass","wind"]]]],["010","Tubster","tubster","Nova","Break",["wind"],["wind"],[108,80,66,109,107,80],[["Beach",["water","wind"]],["Highland",["grass","wind"]]]],["011","Iris","iris","Lumin","DPS",["grass"],["grass"],[69,101,53,53,50,71],[]],["012","Irisal","irisal","Nova","DPS",["grass"],["grass"],[100,118,70,70,52,94],[]],["013","Skippy","skippy","Lumin","Heal",["water"],["water"],[80,70,66,76,50,60],[["Snowfield",["ice","water"]]]],["014","Pranky","pranky","Gamma","Heal",["water"],["water"],[109,85,66,98,50,74],[["Snowfield",["ice","water"]]]],["015","Glacy","glacy","Nova","Heal",["ice","water"],["water"],[120,95,72,110,50,88],[["Prismana",["light","water"]]]],["016","Leafy","leafy","Nova","Regen",["water","grass"],["grass"],[120,95,82,82,50,106],[]],["017","Nimbi","nimbi","Lumin","Support",["wind"],["wind"],[80,84,69,82,43,93],[["Rainstorm",["lightning","wind"]],["Plateau",["ice","wind"]]]],["018","Turbo","turbo","Nova","Support",["wind"],["wind"],[95,110,80,96,50,87],[["Rainstorm",["lightning","wind"]],["Prismana",["dark","wind"]],["Plateau",["ice","wind"]]]],["019","Dreaple","dreaple","Nova","Support",["dark"],["dark"],[100,110,77,103,50,80],[]],["020","Hummin","hummin","Lumin","Break",["grass"],["grass"],[94,68,71,94,80,60],[]],["021","Hexxin","hexxin","Nova","Regen",["dark","grass"],["dark","grass"],[115,88,84,90,50,115],[]],["022","Tuckin","tuckin","Nova","Break",["grass"],["grass","earth"],[106,80,83,110,100,71],[["Mountain",["grass","earth"]]]],["023","Budclaw","budclaw","Lumin","Break",["grass","earth"],["earth","grass"],[76,64,93,65,84,72],[["Mudflat/Beach/Bay",["earth"]]]],["024","Shrubclaw","shrubclaw","Nova","Break",["grass","earth"],["earth","grass"],[95,80,109,77,104,85],[["Mudflat/Beach/Bay",["earth"]]]],["025","Geoclaw","geoclaw","Nova","Break",["ice"],["ice"],[93,80,113,79,103,82],[]],["026","Sparki","sparki","Lumin","Regen",["fire"],["fire"],[69,100,60,67,41,98],[]],["027","Flamerion","flamerion","Nova","Regen",["fire"],["fire"],[80,113,70,89,50,115],[]],["028","Flutternym","flutternym","Lumin","Heal",["wind"],["wind","grass"],[94,81,68,68,41,85],[["Sea of Flowers",["grass","wind"]],["Nighttime",["dark","wind"]],["Mountain Woods",["earth","wind"]]]],["029","Gracewing","gracewing","Nova","Heal",["wind"],["wind","grass"],[110,98,85,85,50,104],[["Sea of Flowers",["grass","wind"]],["Nighttime",["dark","wind"]],["Mountain Woods",["earth","wind"]]]],["030","Somniwing","somniwing","","Regen",["grass","wind"],["grass"],[111,92,85,85,50,115],[]],["031","Eko","eko","Lumin","Support",["wind"],["wind"],[70,108,70,57,42,80],[]],["032","Eklue","eklue","Nova","Support",["wind"],["wind"],[100,120,83,67,49,91],[]],["033","Budsquire","budsquire","Lumin","DPS",["grass"],["grass"],[82,107,59,59,43,78],[]],["034","Thornblade","thornblade","Nova","DPS",["grass"],["grass"],[96,121,74,73,53,92],[["Thunderstorm",["lightning","grass"]],["Prismana",["water","grass"]]]],["035","Melloblum","melloblum","Nova","Support",["grass"],["grass"],[95,113,70,70,91,78],[["Prismana",["light","grass"]]]],["036","Pomegg","pomegg","Lumin","Break",["grass"],["grass"],[74,72,68,65,91,85],[["Snowfield",["ice","grass"]]]],["037","Pomawk","pomawk","Nova","Break",["grass"],["grass"],[87,90,80,76,107,100],[["Snowfield",["ice","grass"]]]],["038","Dewy","dewy","Lumin","Support",["dark"],["dark"],[71,94,58,55,69,94],[]],["039","Fragrancier","fragrancier","Nova","Support",["dark"],["dark"],[84,111,68,65,81,110],[]],["040","Wisptis","wisptis","Lumin","DPS",["dark"],["dark"],[77,112,60,54,43,77],[["Forest",["dark","grass"]],["Highland",["dark","fire"]]]],["041","Ignitis","ignitis","Nova","DPS",["dark"],["dark"],[90,125,77,70,52,91],[["Forest",["dark","grass"]],["Prismana/Highland",["dark","fire"]]]],["042","Bonesky","bonesky","Lumin","DPS",["ice"],["ice"],[71,88,56,57,38,67],[["Nighttime",["dark","ice"]]]],["043","Fenrier","fenrier","Gamma","DPS",["ice"],["ice"],[86,105,68,68,45,81],[["Nighttime",["dark","ice"]]]],["044","Glynsera","glynsera","Nova","DPS",["ice"],["ice"],[95,118,72,76,53,98],[["Prismana",["light","ice"]],["Nighttime",["dark","ice"]]]],["045","Bolty","bolty","Lumin","Break",["lightning"],["lightning"],[85,85,60,60,87,73],[]],["046","Blazen","blazen","Nova","Break",["lightning"],["lightning"],[100,100,70,70,104,86],[["Prismana",["dark","lightning"]]]],["047","Squarrel","squarrel","Lumin","Break",["fire"],["fire"],[53,80,79,72,94,77],[]],["048","Squashel","squashel","Nova","Break",["fire"],["fire"],[110,82,80,80,108,88],[]],["049","Susuta","susuta","Lumin","Break",["water"],["water"],[81,61,53,80,72,64],[]],["050","Popota","popota","Gamma","Break",["water"],["water"],[92,96,68,68,80,67],[]],["051","Piopiota","piopiota","Nova","Support",["water"],["water"],[102,108,99,75,50,88],[["Nighttime",["dark","water"]]]],["052","Panpanta","panpanta","Nova","Break",["water"],["water"],[104,85,70,106,100,80],[]],["053","Shelly","shelly","Lumin","DPS",["water"],["water"],[75,90,56,56,39,66],[]],["054","Sheldon","sheldon","Gamma","DPS",["water"],["water"],[90,109,68,68,44,79],[]],["055","Sherro","sherro","Nova","DPS",["water"],["water"],[100,121,75,75,50,88],[["Thunderstorm",["water","lightning"]],["Prismana",["light","water"]]]],["056","Baleetle","baleetle","Lumin","DPS",["earth"],["earth"],[76,98,68,68,42,85],[["Snowfield",["ice","earth"]]]],["057","Waleetle","waleetle","Nova","DPS",["earth"],["earth"],[90,114,80,80,52,100],[["Snowfield",["ice","earth"]],["Prismana",["dark","earth"]]]],["058","Bouldus","bouldus","Nova","Support",["earth"],["earth"],[91,114,101,54,52,104],[["Snowfield",["ice","earth"]]]],["059","Fentuft","fentuft","Lumin","DPS",["lightning"],["lightning"],[85,106,60,60,41,77],[]],["060","Fenmane","fenmane","Nova","DPS",["lightning"],["lightning"],[100,125,70,70,50,90],[["Prismana",["light","lightning"]]]],["061","Helmut","helmut","Lumin","Break",["dark"],["dark"],[60,52,68,48,60,51],[["Snowfield",["dark","ice"]]]],["062","Pawney","pawney","Nova","DPS",["dark"],["dark"],[90,125,84,70,55,81],[["Snowfield",["dark","ice"]]]],["063","Rookey","rookey","Nova","Break",["dark"],["dark"],[100,90,100,70,105,75],[["Snowfield",["dark","ice"]]]],["064","Jawling","jawling","Lumin","Break",["wind"],["wind"],[78,65,74,51,76,63],[]],["065","Helmwhelp","helmwhelp","Gamma","Break",["wind"],["wind"],[94,78,88,61,92,76],[]],["066","Helgon","helgon","Nova","Break",["wind"],["wind"],[104,87,98,68,102,84],[]],["067","Infergon","infergon","Nova","DPS",["fire"],["fire"],[95,125,70,85,50,80],[["Prismana",["fire","wind"]]]],["068","Cubbo","cubbo","Lumin","DPS",["earth"],["earth"],[92,100,70,61,42,70],[]],["069","Grizbo","grizbo","Nova","DPS",["earth"],["earth"],[104,124,83,70,50,75],[["Prismana",["dark","earth"]]]],["070","Pebbling","pebbling","Lumin","Break",["earth"],["earth"],[83,68,52,74,79,56],[]],["071","Lavazar","lavazar","Gamma","Break",["fire","earth"],["fire"],[99,82,63,80,93,68],[]],["072","Magmarex","magmarex","Nova","Break",["fire","earth"],["fire"],[110,91,70,89,104,75],[["Prismana",["dark","fire"]]]],["073","Geodeback","geodeback","Gamma","Break",["earth"],["earth"],[99,81,80,54,102,70],[]],["074","Minespine","minespine","Nova","Break",["earth"],["earth"],[110,90,97,60,105,78],[]],["075","Cozite","cozite","Lumin","Support",["earth"],["earth"],[77,87,67,67,50,100],[]],["076","Bailite","bailite","Nova","Support",["earth"],["earth"],[90,116,100,83,50,75],[]],["077","Bulbly","bulbly","Lumin","Support",["lightning"],["lightning"],[83,68,63,63,37,90],[]],["078","Veilfloat","veilfloat","Gamma","Support",["lightning"],["lightning"],[99,93,72,74,45,90],[]],["079","Luminelle","luminelle","Nova","Support",["lightning"],["lightning"],[110,115,75,75,50,90],[["Rainstorm",["water","lightning"]],["Prismana",["light","lightning"]]]],["080","Fahloo","fahloo","Lumin","Regen",["water"],["water"],[102,76,68,76,44,93],[]],["081","Erlath","erlath","Nova","Regen",["water"],["water"],[120,90,80,90,50,110],[]],["082","Besauce","besauce","Nova","Regen",["lightning"],["lightning"],[88,92,75,75,90,118],[]],["084","Reefish","reefish","Lumin","Regen",["water","earth"],["earth"],[83,66,75,79,91,92],[["Rainstorm",["earth"]]]],["085","Coraliz","coraliz","Nova","Regen",["water","earth"],["earth"],[98,78,88,93,107,108],[["Rainstorm",["earth"]]]],["086","Cheekie","cheekie","Lumin","Break",["ice"],["ice"],[89,64,76,79,92,88],[]],["087","Wavwal","wavwal","Nova","Break",["ice"],["ice"],[105,75,89,93,110,103],[]],["088","Bubbeep","bubbeep","Lumin","",["water","grass"],["grass","water"],[104,85,78,75,43,82],[]],["089","Glameep","glameep","Nova","",["water","grass"],["grass","water"],[122,100,92,89,50,97],[["Prismana",["dark","grass"]]]],["090","Popapus","popapus","Lumin","",["water"],["water"],[90,102,58,65,45,90],[]],["091","Gachapus","gachapus","Nova","",["water"],["water"],[106,121,68,77,51,106],[]],["092","Malangel","malangel","Lumin","DPS",["ice"],["ice"],[100,105,80,80,50,100],[]],["093","Malevsera","malevsera","Nova","DPS",["ice"],["ice"],[88,125,70,80,52,110],[]],["10001","Irisalis","irisalis","","DPS",["grass"],["grass"],[90,130,78,78,56,108],[]],["10002","Dazmand","dazmand","Nova","Support",["lightning"],["lightning"],[100,108,81,90,55,88],[]],["10003","Fulmintis","fulmintis","Nova","DPS",["lightning"],["lightning"],[99,130,66,70,50,105],[["Prismana",["light","lightning"]]]],["11001","Sparkelf","sparkelf","Nova","Support",["fire"],["fire"],[107,113,60,88,50,99],[]],["99995","Fennelun","fennelun","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],["99996","Lunara","lunara","Lumin","DPS",["light"],["light"],[100,116,72,72,64,90],[]],["99997","Soleon","soleon","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],["99998","Helion","helion","Lumin","DPS",["light"],["light"],[100,116,72,72,64,90],[]]];
+const DEX=[];
+DEX_RAW.forEach(([num,name,slug,stage,role,els,sk,st,forms])=>{
+  const base={num,name,slug,stage,role,st,total:st.reduce((a,b)=>a+b,0)};
+  DEX.push({...base,key:slug,form:'',els,atk:sk.length?sk:els});
+  // Chưa có dữ liệu chiêu riêng cho từng dạng: giả định chiêu theo hệ của dạng đó
+  forms.forEach(([form,fe])=>DEX.push({...base,key:slug+'|'+form,form,els:fe,atk:fe,alt:true}));
+});
+const DEXBY=Object.fromEntries(DEX.map(d=>[d.key,d]));
+const dexLabel=d=>d.form?`${d.name} · ${d.form}`:d.name;
+const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.includes(x));
+
+const EPS=1e-9;
+const hit=(att,combo)=>combo.reduce((p,d)=>p*M[att][d],1);
+const bestOff=(combo,def)=>Math.max(...combo.map(t=>M[t][def]));
+const worstFrom=(enemy,combo)=>Math.max(...enemy.map(e=>hit(e,combo)));
+const worstType=(enemy,combo)=>enemy.reduce((b,e)=>hit(e,combo)>hit(b,combo)?e:b,enemy[0]);
+const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const fmt=v=>Math.abs(v-0.625)<EPS?'0.625':String(+v.toFixed(2));
+const lvl=v=>v>=2-EPS?2:v>1+EPS?1:v<0.5+EPS?-2:v<1-EPS?-1:0;
+const LVL_CLS={2:'b2',1:'b1',0:'n','-1':'g1','-2':'g2'};
+function cell(v,pol,title){
+  const l=lvl(v)*(pol==='atk'?-1:1);
+  return `<span class="m ${LVL_CLS[l]}"${title?` title="${title}"`:''}>×${fmt(v)}</span>`;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const chip=id=>`<span class="tc" style="--tc:${T[id].c}"><i></i>${T[id].name}</span>`;
+const comboChips=c=>`<span class="combo">${c.map(chip).join('')}</span>`;
+const comboName=c=>c.map(id=>T[id].name).join(' / ');
+function picker(sel,max,key){
+  return TYPES.map(t=>{
+    const on=sel.includes(t.id);
+    return `<button class="pick" type="button" data-pk="${key}" data-t="${t.id}" aria-pressed="${on}" style="--tc:${t.c}"${!on&&sel.length>=max?' disabled':''}><i></i>${t.name}</button>`;
+  }).join('');
+}
+function combos(k){
+  const out=[];
+  const rec=(start,cur)=>{if(cur.length===k){out.push(cur.slice());return;}for(let i=start;i<TYPES.length;i++){cur.push(TYPES[i].id);rec(i+1,cur);cur.pop();}};
+  rec(0,[]);return out;
+}
+function defStats(c){
+  const vs=TYPES.map(a=>hit(a.id,c));
+  return{vs,weak:vs.filter(v=>v>1+EPS).length,weak2:vs.filter(v=>v>=2-EPS).length,
+    res:vs.filter(v=>v<1-EPS).length,res2:vs.filter(v=>v<0.5+EPS).length,avg:avg(vs),max:Math.max(...vs)};
+}
+function offStats(c){
+  const vs=TYPES.map(d=>bestOff(c,d.id));
+  return{vs,sup:vs.filter(v=>v>1+EPS).length,bad:vs.filter(v=>v<1-EPS).length};
+}
+
+/* ---------- state ---------- */
+const DEFAULT={
+  tab:'combo',
+  combo:['fire','water'],
+  compare:[['fire','water'],['grass','ice'],['dark','wind','earth']],
+  enemies:[{name:'Scorchhowl',types:['fire'],dex:'scorchhowl'},{name:'Glacy',types:['ice','water'],dex:'glacy'},{name:'Hexxin',types:['dark','grass'],dex:'hexxin'},{name:'Fennelun',types:['light'],dex:'fennelun'}],
+  defSize:2,showAll:false,sug:{stage:'Nova',role:'all',forms:false},sugAll:false
+};
+let S=JSON.parse(JSON.stringify(DEFAULT));
+try{const saved=JSON.parse(localStorage.getItem('aniimo-khac-he')||'null');if(saved&&saved.combo)S=Object.assign(S,saved);}catch(e){}
+S.sug=Object.assign({},DEFAULT.sug,S.sug);
+function save(){try{localStorage.setItem('aniimo-khac-he',JSON.stringify(S));}catch(e){}}
+const $=s=>document.querySelector(s);
+
+/* ---------- 1. Bộ hệ ---------- */
+const GROUP_LABEL={2:'Rất yếu',1:'Yếu',0:'Trung tính','-1':'Kháng','-2':'Kháng mạnh'};
+function renderCombo(){
+  const c=S.combo;
+  let h=`<div class="card"><div class="card-h"><h2>Chọn bộ hệ</h2><span class="hint">Tối đa 3 hệ · đang chọn ${c.length}/3</span></div>
+    <div class="picker">${picker(c,3,'combo')}</div></div>`;
+  if(!c.length){$('#p-combo').innerHTML=h+`<p class="empty">Chọn ít nhất một hệ để xem bảng khắc kháng.</p>`;return;}
+  const d=defStats(c),o=offStats(c);
+  h+=`<div class="card">
+    <div class="card-h"><div class="combo">${comboChips(c)}</div>
+      <button class="btn" type="button" data-act="to-compare"${S.compare.length>=6?' disabled':''}>Thêm vào so sánh</button></div>
+    <div class="stats">
+      <div class="stat"><b>${d.weak}</b><span>hệ đánh bạn mạnh hơn (${d.weak2} hệ ≥ ×2.56)</span></div>
+      <div class="stat"><b>${d.res}</b><span>hệ bạn kháng được (${d.res2} hệ ≤ ×0.39)</span></div>
+      <div class="stat"><b>×${d.avg.toFixed(2)}</b><span>sát thương nhận trung bình</span></div>
+      <div class="stat"><b>${o.sup}/9</b><span>hệ bạn đánh khắc được (cùng hệ)</span></div>
+    </div></div>`;
+  const vals=[...new Set(d.vs.map(v=>+v.toFixed(4)))].sort((a,b)=>b-a);
+  const groups=vals.map(v=>{
+    const ids=TYPES.filter(a=>Math.abs(hit(a.id,c)-v)<1e-4).map(a=>a.id);
+    return `<div class="grp"><div class="lbl">${cell(v,'def')}${GROUP_LABEL[lvl(v)]}</div><div class="combo">${ids.map(chip).join('')}</div></div>`;
+  }).join('');
+  const off=TYPES.map((t,i)=>{
+    const v=o.vs[i];const by=c.filter(x=>Math.abs(M[x][t.id]-v)<EPS);
+    return `<div class="g9">${chip(t.id)}${cell(v,'atk')}<small>${v>1+EPS?'đánh bằng '+by.map(x=>T[x].name).join(', '):v<1-EPS?'mọi hệ đều bị kháng':'bình thường'}</small></div>`;
+  }).join('');
+  h+=`<div class="cols">
+    <div class="card"><div class="card-h"><h2>Khi bị tấn công</h2><span class="hint">Hệ số nhân lên bộ hệ này</span></div><div class="groups">${groups}</div></div>
+    <div class="card"><div class="card-h"><h2>Khi tấn công</h2><span class="hint">Chiêu tốt nhất trong các hệ của bộ</span></div><div class="grid9">${off}</div></div>
+  </div>`;
+  const owners=DEX.filter(x=>sameSet(x.els,c));
+  h+=`<div class="card"><div class="card-h"><h2>Aniimo mang bộ hệ này</h2><span class="hint">${owners.length} kết quả</span></div>
+    ${owners.length?`<div class="dexlist">${owners.map(dexCard).join('')}</div>`:'<p class="empty">Chưa có Aniimo nào mang đúng bộ hệ này.</p>'}</div>`;
+  $('#p-combo').innerHTML=h;
+}
+
+/* ---------- 2. So sánh ---------- */
+const LETTERS='ABCDEF';
+function renderCompare(){
+  const list=S.compare;
+  let h=`<div class="card"><div class="card-h"><h2>Các bộ cần so sánh</h2><span class="hint">2–6 bộ, mỗi bộ 1–3 hệ</span></div>
+    <div class="slots">${list.map((c,i)=>`<div class="slot">
+      <div class="slot-h"><span class="tag">${LETTERS[i]}</span><span class="hint" style="flex:1">${c.length?comboName(c):'Chưa chọn hệ'}</span>
+      ${list.length>2?`<button class="btn ghost" type="button" data-act="rm-cmp" data-i="${i}" aria-label="Xoá bộ ${LETTERS[i]}">Xoá</button>`:''}</div>
+      <div class="picker">${picker(c,3,'cmp:'+i)}</div></div>`).join('')}</div>
+    ${list.length<6?`<div><button class="btn" type="button" data-act="add-cmp">+ Thêm bộ</button></div>`:''}</div>`;
+  const valid=list.map((c,i)=>({c,i})).filter(x=>x.c.length);
+  if(valid.length<2){$('#p-compare').innerHTML=h+`<p class="empty">Cần ít nhất 2 bộ có hệ để so sánh.</p>`;return;}
+  valid.forEach(x=>{x.d=defStats(x.c);x.o=offStats(x.c);});
+  const metrics=[
+    ['Số hệ khắc mình (>×1)',x=>x.d.weak,'min',v=>v],
+    ['Rất yếu (≥×2.56)',x=>x.d.weak2,'min',v=>v],
+    ['Số hệ kháng được (<×1)',x=>x.d.res,'max',v=>v],
+    ['Kháng mạnh (≤×0.39)',x=>x.d.res2,'max',v=>v],
+    ['Sát thương nhận TB',x=>x.d.avg,'min',v=>'×'+v.toFixed(2)],
+    ['Sát thương nhận cao nhất',x=>x.d.max,'min',v=>'×'+fmt(v)],
+    ['Tấn công khắc được',x=>x.o.sup,'max',v=>v+'/9'],
+    ['Tấn công bị kháng hết',x=>x.o.bad,'min',v=>v+'/9'],
+  ];
+  const head=valid.map(x=>`<th class="c">Bộ ${LETTERS[x.i]}<br>${comboChips(x.c)}</th>`).join('');
+  const levels=[...new Set(valid.flatMap(x=>x.d.vs.map(v=>+v.toFixed(4))))].sort((a,b)=>b-a);
+  const body=levels.map(v=>`<tr><td><div class="lbl">${cell(v,'def')}<span class="hint">${GROUP_LABEL[lvl(v)]}</span></div></td>${valid.map(x=>{
+    const ids=TYPES.filter((a,r)=>Math.abs(x.d.vs[r]-v)<1e-4).map(a=>a.id);
+    return `<td class="grpcell">${ids.length?`<div class="combo">${ids.map(chip).join('')}</div>`:'<span class="hint">—</span>'}</td>`;
+  }).join('')}</tr>`).join('');
+  const foot=metrics.map(([label,get,dir,show])=>{
+    const vals=valid.map(get);const best=dir==='min'?Math.min(...vals):Math.max(...vals);
+    const allSame=vals.every(v=>Math.abs(v-vals[0])<EPS);
+    return `<tr><td class="hint">${label}</td>${vals.map(v=>`<td class="num${!allSame&&Math.abs(v-best)<EPS?' best':''}">${show(v)}</td>`).join('')}</tr>`;
+  }).join('');
+  h+=`<div class="card"><div class="card-h"><h2>Sát thương nhận theo mức hệ số</h2><span class="hint">Mỗi ô là các hệ tấn công gây đúng mức đó · Tím đậm = tốt nhất ở dòng tổng kết</span></div>
+    <div class="scroll"><table class="tbl cmp"><thead><tr><th>Hệ số</th>${head}</tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div></div>`;
+  const defRank=valid.slice().sort((a,b)=>a.d.avg-b.d.avg||a.d.weak-b.d.weak||b.d.res-a.d.res);
+  const offRank=valid.slice().sort((a,b)=>b.o.sup-a.o.sup||a.o.bad-b.o.bad);
+  h+=`<div class="cols">
+    <div class="card"><h2>Xếp hạng phòng thủ</h2><p class="note">Theo sát thương nhận trung bình, sau đó số điểm yếu.</p><ol class="rank">${defRank.map((x,k)=>`<li><span class="pos">${k+1}</span><b>${LETTERS[x.i]}</b>${comboChips(x.c)}<span class="meta">TB ×${x.d.avg.toFixed(2)} · yếu ${x.d.weak} · kháng ${x.d.res}</span></li>`).join('')}</ol></div>
+    <div class="card"><h2>Xếp hạng tấn công</h2><p class="note">Theo số hệ đánh khắc được bằng chiêu cùng hệ.</p><ol class="rank">${offRank.map((x,k)=>`<li><span class="pos">${k+1}</span><b>${LETTERS[x.i]}</b>${comboChips(x.c)}<span class="meta">khắc ${x.o.sup}/9 · bị kháng hết ${x.o.bad}</span></li>`).join('')}</ol></div>
+  </div>`;
+  $('#p-compare').innerHTML=h;
+}
+
+/* ---------- 3. Đội hình ---------- */
+const enemyName=(e,i)=>e.name.trim()||`Địch ${i+1}`;
+// Hệ chiêu địch dùng: theo dữ liệu dex nếu chọn từ danh sách, không thì theo hệ của nó
+const enemyAtk=e=>e.dex&&DEXBY[e.dex]?DEXBY[e.dex].atk:e.types;
+const dexUrl=d=>`https://aniidex.com/aniimo/${d.slug}/`;
+function dexCard(d){
+  return `<a class="dexcard" href="${dexUrl(d)}" target="_blank" rel="noopener">
+    <span class="dexname">${esc(d.name)} <small>#${d.num}</small>${d.form?`<em>${esc(d.form)}</em>`:''}</span>
+    <span class="combo">${d.els.map(chip).join('')}</span>
+    <span class="dexmeta">${[d.stage,d.role].filter(Boolean).join(' · ')} · Tổng ${d.total}</span></a>`;
+}
+function enemyNote(e){
+  const d=e.dex&&DEXBY[e.dex];
+  return d?`Theo Aniidex · chiêu hệ ${d.atk.map(x=>T[x].name).join(', ')}${d.alt?' (giả định theo hệ của dạng)':''}`:'Tự chọn hệ · giả định dùng chiêu cùng hệ';
+}
+/* ---------- ô tìm kiếm Aniimo ---------- */
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+DEX.forEach(d=>{d.search=norm([d.name,d.form,d.num,d.role,d.stage,...d.els.map(x=>T[x].name)].join(' '));});
+const CB={i:-1,items:[],active:0};
+function cbFilter(q){
+  const words=norm(q).split(/\s+/).filter(Boolean);
+  const hits=DEX.filter(d=>words.every(w=>d.search.includes(w)));
+  // Tên bắt đầu bằng từ khoá lên trước
+  if(words[0])hits.sort((a,b)=>(norm(b.name).startsWith(words[0])-norm(a.name).startsWith(words[0]))||(a.alt?1:0)-(b.alt?1:0));
+  return hits;
+}
+function cbOpen(i){
+  const inp=$('#enemy-name-'+i),box=$('#cb-list-'+i);if(!inp||!box)return;
+  const e=S.enemies[i];
+  const q=e.dex&&inp.value===e.name?'':inp.value;
+  CB.i=i;CB.items=cbFilter(q);CB.active=0;
+  box.innerHTML=CB.items.length?CB.items.map((d,k)=>`<div class="cb-opt" role="option" id="cb-${i}-${k}" data-k="${k}" aria-selected="${k===0}">
+      <span class="cb-name">${esc(d.name)} <small>#${d.num}</small>${d.form?` <em>${esc(d.form)}</em>`:''}</span>
+      <span class="combo">${d.els.map(chip).join('')}</span></div>`).join('')
+    :`<div class="cb-empty">Không tìm thấy. Vẫn có thể giữ tên này và tự chọn hệ bên dưới.</div>`;
+  box.hidden=false;inp.setAttribute('aria-expanded','true');
+  box.scrollTop=0;cbMark();
+}
+function cbClose(){
+  if(CB.i<0)return;
+  const box=$('#cb-list-'+CB.i),inp=$('#enemy-name-'+CB.i);
+  if(box)box.hidden=true;if(inp){inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant');}
+  CB.i=-1;
+}
+function cbMark(){
+  const box=$('#cb-list-'+CB.i),inp=$('#enemy-name-'+CB.i);if(!box)return;
+  box.querySelectorAll('.cb-opt').forEach(o=>o.setAttribute('aria-selected',+o.dataset.k===CB.active));
+  const cur=$('#cb-'+CB.i+'-'+CB.active);
+  if(cur){cur.scrollIntoView({block:'nearest'});inp.setAttribute('aria-activedescendant',cur.id);}
+}
+function cbPick(i,d){
+  const e=S.enemies[i];e.dex=d.key;e.types=d.els.slice();e.name=dexLabel(d);
+  cbClose();renderTeamEditor();renderTeamResults();save();
+}
+function renderTeamEditor(){
+  const list=S.enemies;
+  $('#team-editor').innerHTML=`<div class="slots">${list.map((e,i)=>`<div class="slot">
+      <div class="slot-h"><span class="tag">${i+1}</span>
+        <div class="cbox">
+          <input id="enemy-name-${i}" data-en="${i}" type="text" maxlength="40" placeholder="Tìm Aniimo theo tên, dạng, hệ…" value="${esc(e.name)}"
+            role="combobox" aria-expanded="false" aria-controls="cb-list-${i}" aria-autocomplete="list" aria-label="Đối thủ ${i+1}" autocomplete="off">
+          <div class="cb-list" id="cb-list-${i}" role="listbox" hidden></div>
+        </div>
+        ${list.length>1?`<button class="btn ghost" type="button" data-act="rm-en" data-i="${i}" aria-label="Xoá đối thủ ${i+1}">Xoá</button>`:''}</div>
+      <div class="picker">${picker(e.types,3,'en:'+i)}</div>
+      <p class="note" id="enemy-note-${i}">${enemyNote(e)}</p></div>`).join('')}</div>
+    ${list.length<4?`<div style="margin-top:12px"><button class="btn" type="button" data-act="add-en">+ Thêm đối thủ</button></div>`:''}`;
+}
+// Đánh giá một Aniimo của mình trước từng đối thủ
+function matchup(d,en){
+  const off=en.map(e=>Math.max(...d.atk.map(a=>hit(a,e.types))));
+  const def=en.map(e=>worstFrom(enemyAtk(e),d.els));
+  const offAvg=avg(off),defAvg=avg(def);
+  return{d,off,def,offAvg,defAvg,score:offAvg/defAvg,edge:off.map((o,j)=>o/def[j])};
+}
+const ROLES=['DPS','Break','Support','Heal','Regen'];
+// Top Aniimo của một vai trò, mỗi loài chỉ lấy dạng tốt nhất
+function topByRole(pool,role,n){
+  const seen=new Set(),out=[];
+  for(const m of pool){if(m.d.role!==role||seen.has(m.d.slug))continue;seen.add(m.d.slug);out.push(m);if(out.length===n)break;}
+  return out;
+}
+function renderTeamResults(){
+  const en=S.enemies.map((e,i)=>({...e,label:enemyName(e,i)})).filter(e=>e.types.length);
+  if(!en.length){$('#team-results').innerHTML=`<p class="empty">Gắn hệ cho ít nhất một đối thủ để xem gợi ý.</p>`;return;}
+  const enHead=en.map(e=>`<th class="c">${esc(e.label)}<br>${comboChips(e.types)}</th>`).join('');
+
+  // Aniimo gợi ý
+  const f=S.sug;
+  const opt=(v,cur,label)=>`<option value="${v}"${v===cur?' selected':''}>${label}</option>`;
+  const base=DEX.filter(d=>(f.forms||!d.alt)&&(f.stage==='all'||d.stage===f.stage)).map(d=>matchup(d,en))
+    .sort((a,b)=>b.score-a.score||b.d.total-a.d.total);
+  const pool=base.filter(m=>f.role==='all'||m.d.role===f.role);
+  const limit=S.sugAll?pool.length:15;
+  const sugRows=pool.slice(0,limit).map((m,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td>
+    <td><a class="dexlink" href="${dexUrl(m.d)}" target="_blank" rel="noopener">${esc(m.d.name)}</a>${m.d.form?` <small class="hint">${esc(m.d.form)}</small>`:''}<div class="hint">${[m.d.stage,m.d.role].filter(Boolean).join(' · ')} · ${m.d.total}</div></td>
+    <td>${comboChips(m.d.els)}</td>
+    ${m.off.map((o,j)=>`<td class="c pair">${cell(o,'atk','Mình đánh')}${cell(m.def[j],'def','Mình nhận')}</td>`).join('')}
+    <td class="num">×${m.score.toFixed(2)}</td></tr>`).join('');
+  const roleHtml=ROLES.map(role=>{
+    const top=topByRole(base,role,4);
+    return `<div class="rolecol"><div class="role-h"><span class="role-tag">${role}</span><span class="hint">${top.length?'Top '+top.length:'Không có'}</span></div>
+      ${top.length?top.map((m,k)=>{
+        const beats=en.filter((e,j)=>m.edge[j]>1+EPS).map(e=>esc(e.label));
+        return `<div class="rolepick"><span class="rp-rank">${k+1}</span><div class="rp-body">${dexCard(m.d)}
+          <p class="note"><b class="rp-score">Lợi thế ×${m.score.toFixed(2)}</b> · ${beats.length?'khắc '+beats.join(', '):'không khắc ai rõ rệt'}</p></div></div>`;
+      }).join(''):'<p class="empty">Không có Aniimo nào khớp bộ lọc.</p>'}</div>`;
+  }).join('');
+
+  // Tấn công: hệ chiêu của mình đánh lên từng đối thủ
+  const atk=TYPES.map(t=>{const vs=en.map(e=>hit(t.id,e.types));return{t:t.id,vs,avg:avg(vs),sup:vs.filter(v=>v>1+EPS).length,bad:vs.filter(v=>v<1-EPS).length};})
+    .sort((a,b)=>b.avg-a.avg||b.sup-a.sup||a.bad-b.bad);
+  const atkRows=atk.map((r,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td><td>${chip(r.t)}</td>${r.vs.map(v=>`<td class="c">${cell(v,'atk')}</td>`).join('')}<td class="num">×${r.avg.toFixed(2)}</td><td class="num">${r.sup}/${en.length}</td></tr>`).join('');
+
+  // Phòng thủ: đối thủ chọn hệ chiêu gây sát thương cao nhất lên mình
+  const size=S.defSize;
+  const def=combos(size).map(c=>{const vs=en.map(e=>worstFrom(enemyAtk(e),c));return{c,vs,by:en.map(e=>worstType(enemyAtk(e),c)),avg:avg(vs),max:Math.max(...vs),weak:vs.filter(v=>v>1+EPS).length};})
+    .sort((a,b)=>a.avg-b.avg||a.max-b.max||a.weak-b.weak);
+  const dlimit=size===1||S.showAll?def.length:10;
+  const defRows=def.slice(0,dlimit).map((r,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td><td>${comboChips(r.c)}</td>${r.vs.map((v,j)=>`<td class="c">${cell(v,'def','Đòn '+T[r.by[j]].name)}</td>`).join('')}<td class="num">×${r.avg.toFixed(2)}</td><td class="num">×${fmt(r.max)}</td></tr>`).join('');
+
+  $('#team-results').innerHTML=`
+  <div class="card"><div class="card-h"><h2>Aniimo gợi ý theo vai trò</h2><span class="hint">Top 4 mỗi vai trò theo lợi thế hệ · dùng bộ lọc giai đoạn và dạng bên dưới</span></div>
+    <div class="rolegrid">${roleHtml}</div></div>
+  <div class="card"><div class="card-h"><h2>Aniimo nên đưa ra trận</h2>
+      <div class="filters">
+        <label>Giai đoạn <select id="f-stage" data-f="stage">${opt('all',f.stage,'Tất cả')}${['Nova','Gamma','Lumin'].map(s=>opt(s,f.stage,s)).join('')}</select></label>
+        <label>Vai trò <select id="f-role" data-f="role">${opt('all',f.role,'Tất cả')}${['DPS','Break','Support','Regen','Heal'].map(s=>opt(s,f.role,s)).join('')}</select></label>
+        <label class="chk"><input id="f-forms" type="checkbox" data-f="forms"${f.forms?' checked':''}> Gồm dạng vùng/Prismana</label>
+      </div></div>
+    <p class="note">Mỗi ô đối thủ: trái là sát thương mình gây (chiêu tốt nhất), phải là sát thương mình nhận. Lợi thế = gây TB ÷ nhận TB; bằng nhau thì xếp theo tổng chỉ số.</p>
+    <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Aniimo</th><th>Hệ</th>${enHead}<th class="c">Lợi thế</th></tr></thead><tbody>${sugRows}</tbody></table></div>
+    ${pool.length>15?`<div><button class="btn" type="button" data-act="sug-all">${S.sugAll?'Thu gọn top 15':`Xem tất cả ${pool.length}`}</button></div>`:''}</div>
+  <div class="card"><div class="card-h"><h2>Hệ tấn công tốt nhất</h2><span class="hint">Cao → thấp theo hệ số trung bình lên cả đội địch</span></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Hệ chiêu</th>${enHead}<th class="c">TB</th><th class="c">Khắc</th></tr></thead><tbody>${atkRows}</tbody></table></div></div>
+  <div class="card"><div class="card-h"><h2>Hệ phòng thủ ổn nhất</h2>
+      <div class="seg" role="group" aria-label="Số hệ phòng thủ">${[1,2,3].map(n=>`<button type="button" data-act="def-size" data-n="${n}" aria-pressed="${size===n}">${['Đơn hệ','Song hệ','Tam hệ'][n-1]}</button>`).join('')}</div></div>
+    <p class="note">Sát thương nhận thấp → cao. Đối thủ chọn từ Aniidex dùng hệ chiêu thật của nó, còn lại giả định dùng chiêu cùng hệ; luôn lấy hệ đánh bạn đau nhất (rê chuột vào ô để xem).</p>
+    <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Bộ hệ</th>${enHead}<th class="c">TB</th><th class="c">Cao nhất</th></tr></thead><tbody>${defRows}</tbody></table></div>
+    ${size>1?`<div><button class="btn" type="button" data-act="show-all">${S.showAll?'Thu gọn top 10':`Xem tất cả ${def.length} bộ`}</button></div>`:''}</div>`;
+}
+
+/* ---------- tabs & events ---------- */
+const HASH={combo:'bo-he',compare:'so-sanh',team:'doi-hinh'};
+function setTab(tab){
+  S.tab=tab;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  ['combo','compare','team'].forEach(k=>{$('#p-'+k).hidden=k!==tab;});
+  try{history.replaceState(null,'','#'+HASH[tab]);}catch(e){}
+  save();
+}
+function renderAll(){renderCombo();renderCompare();renderTeamEditor();renderTeamResults();}
+const toggle=(arr,id,max)=>{const i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else if(arr.length<max)arr.push(id);};
+
+document.addEventListener('click',ev=>{
+  const tabBtn=ev.target.closest('.tabs button');
+  if(tabBtn){setTab(tabBtn.dataset.tab);return;}
+  const p=ev.target.closest('.pick');
+  if(p){
+    const [k,i]=p.dataset.pk.split(':');
+    if(k==='combo'){toggle(S.combo,p.dataset.t,3);renderCombo();}
+    else if(k==='cmp'){toggle(S.compare[+i],p.dataset.t,3);renderCompare();}
+    else if(k==='en'){const e=S.enemies[+i];toggle(e.types,p.dataset.t,3);e.dex='';renderTeamEditor();renderTeamResults();}
+    save();return;
+  }
+  const a=ev.target.closest('[data-act]');if(!a)return;
+  const i=+a.dataset.i;
+  switch(a.dataset.act){
+    case 'to-compare':if(S.compare.length<6){S.compare.push(S.combo.slice());renderCompare();setTab('compare');}break;
+    case 'add-cmp':S.compare.push([]);renderCompare();break;
+    case 'rm-cmp':S.compare.splice(i,1);renderCompare();break;
+    case 'add-en':S.enemies.push({name:'',types:[],dex:''});renderTeamEditor();renderTeamResults();break;
+    case 'rm-en':S.enemies.splice(i,1);renderTeamEditor();renderTeamResults();break;
+    case 'def-size':S.defSize=+a.dataset.n;S.showAll=false;renderTeamResults();break;
+    case 'show-all':S.showAll=!S.showAll;renderTeamResults();break;
+    case 'sug-all':S.sugAll=!S.sugAll;renderTeamResults();break;
+  }
+  save();
+});
+document.addEventListener('input',ev=>{
+  const inp=ev.target.closest('input[data-en]');if(!inp)return;
+  const i=+inp.dataset.en,e=S.enemies[i];e.name=inp.value;
+  if(e.dex){e.dex='';$('#enemy-note-'+i).textContent=enemyNote(e);}
+  cbOpen(i);renderTeamResults();save();
+});
+document.addEventListener('focusin',ev=>{
+  const inp=ev.target.closest('input[data-en]');
+  if(inp){if(CB.i!==+inp.dataset.en){cbClose();cbOpen(+inp.dataset.en);}}
+  else if(!ev.target.closest('.cbox'))cbClose();
+});
+document.addEventListener('keydown',ev=>{
+  const inp=ev.target.closest('input[data-en]');if(!inp)return;
+  const i=+inp.dataset.en;
+  if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){
+    ev.preventDefault();if(CB.i!==i){cbOpen(i);return;}
+    const n=CB.items.length;if(!n)return;
+    CB.active=(CB.active+(ev.key==='ArrowDown'?1:n-1))%n;cbMark();
+  }else if(ev.key==='Enter'){
+    if(CB.i===i&&CB.items[CB.active]){ev.preventDefault();cbPick(i,CB.items[CB.active]);}
+  }else if(ev.key==='Escape'||ev.key==='Tab'){cbClose();}
+});
+document.addEventListener('mousedown',ev=>{
+  const o=ev.target.closest('.cb-opt');
+  if(o){ev.preventDefault();cbPick(CB.i,CB.items[+o.dataset.k]);return;}
+  if(!ev.target.closest('.cbox'))cbClose();
+});
+document.addEventListener('change',ev=>{
+  const el=ev.target.closest('[data-f]');if(!el)return;
+  S.sug[el.dataset.f]=el.type==='checkbox'?el.checked:el.value;S.sugAll=false;renderTeamResults();save();
+});
+
+renderAll();
+const fromHash=Object.keys(HASH).find(k=>'#'+HASH[k]===location.hash);
+setTab(fromHash||S.tab||'combo');
+</script>
+</body>
+</html>
