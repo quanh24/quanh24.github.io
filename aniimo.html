@@ -142,6 +142,8 @@ table.tbl:not(.cmp){border-spacing:0 2px}
 .per-el{display:inline-flex;flex-direction:column;gap:3px;align-items:stretch}
 .per-el .m{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:64px}
 .per-el .m i{width:8px;height:8px;border-radius:50%;background:var(--tc);flex:none}
+.tbl td.stat{font-weight:500;color:var(--muted)}
+.tbl.hide-stats .stat{display:none}
 .rolegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
 @media (min-width:1100px){#team-editor .slots{grid-template-columns:repeat(4,minmax(0,1fr))}.rolegrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .rolecol{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -507,6 +509,18 @@ function renderTeamResults(){
   const dlimit=size===1||S.showAll?def.length:10;
   const defRows=def.slice(0,dlimit).map((r,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td><td>${comboChips(r.c)}</td>${r.vs.map((v,j)=>`<td class="c">${cell(v,'def','Đòn '+T[r.by[j]].name)}</td>`).join('')}<td class="num">×${r.avg.toFixed(2)}</td><td class="num">×${fmt(r.max)}</td></tr>`).join('');
 
+  // Aniimo phòng thủ: nhận ít sát thương nhất từ đội địch
+  // Chỉ số ưu tiên khi nhận sát thương bằng nhau: HP → DEF (P.DEF + M.DEF) → BREAK → REGEN → ATK
+  const tankStats=d=>[d.st[0],d.st[2]+d.st[3],d.st[4],d.st[5],d.st[1]];
+  const byStats=(a,b)=>{const x=tankStats(a),y=tankStats(b);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return y[i]-x[i];return 0;};
+  const tanks=base.slice().sort((a,b)=>a.defAvg-b.defAvg||Math.max(...a.def)-Math.max(...b.def)||byStats(a.d,b.d));
+  const tankRows=tanks.slice(0,S.tankAll?tanks.length:15).map((m,k)=>`<tr class="${k<3?'top':''}"><td class="rk">${k+1}</td>
+    <td>${tierBadge(m.d.tier,m.d.tierCustom)}<a class="dexlink" href="${dexUrl(m.d)}" target="_blank" rel="noopener">${esc(m.d.name)}</a>${m.d.form?` <small class="hint">${esc(m.d.form)}</small>`:''}<div class="hint">${[m.d.stage,m.d.role].filter(Boolean).join(' · ')}</div></td>
+    <td>${comboChips(m.d.els)}</td>
+    ${en.map(e=>`<td class="c"><div class="per-el">${enemyAtk(e).map(a=>cell(hit(a,m.d.els),'def',`${esc(e.label)} đánh bằng chiêu ${T[a].name}`).replace('">×',`"><i style="--tc:${T[a].c}"></i>×`)).join('')}</div></td>`).join('')}
+    <td class="num">×${m.defAvg.toFixed(2)}</td><td class="num">×${fmt(Math.max(...m.def))}</td>
+    ${tankStats(m.d).map((v,i)=>`<td class="num stat"${i===1?` title="P.DEF ${m.d.st[2]} + M.DEF ${m.d.st[3]}"`:''}>${v}</td>`).join('')}</tr>`).join('');
+
   $('#team-results').innerHTML=`
   <div class="card"><div class="card-h"><h2>Aniimo gợi ý theo vai trò</h2>
       <div class="filters">
@@ -532,7 +546,13 @@ function renderTeamResults(){
       <div class="seg" role="group" aria-label="Số hệ phòng thủ">${[1,2,3].map(n=>`<button type="button" data-act="def-size" data-n="${n}" aria-pressed="${size===n}">${['Đơn hệ','Song hệ','Tam hệ'][n-1]}</button>`).join('')}</div></div>
     <p class="note">Sát thương nhận thấp → cao. Đối thủ chọn từ Aniidex dùng hệ chiêu thật của nó, còn lại giả định dùng chiêu cùng hệ; luôn lấy hệ đánh bạn đau nhất (rê chuột vào ô để xem).</p>
     <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Bộ hệ</th>${enHead}<th class="c">TB</th><th class="c">Cao nhất</th></tr></thead><tbody>${defRows}</tbody></table></div>
-    ${size>1?`<div><button class="btn" type="button" data-act="show-all">${S.showAll?'Thu gọn top 10':`Xem tất cả ${def.length} bộ`}</button></div>`:''}</div>`;
+    ${size>1?`<div><button class="btn" type="button" data-act="show-all">${S.showAll?'Thu gọn top 10':`Xem tất cả ${def.length} bộ`}</button></div>`:''}</div>
+  <div class="card"><div class="card-h"><h2>Aniimo phòng thủ ổn nhất</h2>
+      <div class="filters"><span class="hint">Dùng bộ lọc tier, giai đoạn, dạng, hệ ở trên</span>
+        <label class="chk"><input id="show-stats" type="checkbox" data-opt="showStats"${S.showStats?' checked':''}> Hiện chỉ số</label></div></div>
+    <p class="note">Mỗi ô = sát thương mình nhận từ từng hệ chiêu của con địch đó (chấm màu là hệ chiêu; địch song hệ hiện 2 dòng). Nhận TB và Cao nhất tính theo hệ đau nhất của mỗi con. Bằng nhau thì ưu tiên chỉ số theo thứ tự HP → DEF (P.DEF + M.DEF) → BREAK → REGEN → ATK.</p>
+    <div class="scroll"><table class="tbl${S.showStats?'':' hide-stats'}"><thead><tr><th>#</th><th>Aniimo</th><th>Hệ</th>${enHead}<th class="c">Nhận TB</th><th class="c">Cao nhất</th>${['HP','DEF','BREAK','REGEN','ATK'].map(h=>`<th class="c stat">${h}</th>`).join('')}</tr></thead><tbody>${tankRows}</tbody></table></div>
+    ${tanks.length>15?`<div><button class="btn" type="button" data-act="tank-all">${S.tankAll?'Thu gọn top 15':`Xem tất cả ${tanks.length}`}</button></div>`:''}</div>`;
 }
 
 /* ---------- tabs & events ---------- */
@@ -571,6 +591,7 @@ document.addEventListener('click',ev=>{
     case 'def-size':S.defSize=+a.dataset.n;S.showAll=false;renderTeamResults();break;
     case 'show-all':S.showAll=!S.showAll;renderTeamResults();break;
     case 'clear-els':S.sug.els=[];renderTeamResults();break;
+    case 'tank-all':S.tankAll=!S.tankAll;renderTeamResults();break;
     case 'sug-all':S.sugAll=!S.sugAll;renderTeamResults();break;
   }
   save();
@@ -603,6 +624,8 @@ document.addEventListener('mousedown',ev=>{
   if(!ev.target.closest('.cbox'))cbClose();
 });
 document.addEventListener('change',ev=>{
+  const opt=ev.target.closest('[data-opt]');
+  if(opt){S[opt.dataset.opt]=opt.checked;renderTeamResults();save();return;}
   const el=ev.target.closest('[data-f]');if(!el)return;
   S.sug[el.dataset.f]=el.type==='checkbox'?el.checked:el.value;S.sugAll=false;renderTeamResults();save();
 });
