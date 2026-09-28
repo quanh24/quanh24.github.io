@@ -7,6 +7,18 @@ const DATA_INFO={
   tier:'2026-09-25', // tier list Aniidex
 };
 
+// Map trứng (tab 4). file = đường dẫn ảnh tính từ aniimo.html, name = tên hiện trên trang.
+// Thêm map mới: bỏ ảnh vào thư mục aniimomap/ rồi thêm một dòng ở đây.
+const EGG_MAPS=[
+  {file:'aniimomap/1.png', name:'Map 1'},
+  {file:'aniimomap/2.png', name:'Map 2'},
+  {file:'aniimomap/3.png', name:'Map 3'},
+  {file:'aniimomap/4.png', name:'Map 4'},
+  {file:'aniimomap/5.png', name:'Map 5'},
+  {file:'aniimomap/6.png', name:'Map 6'},
+  {file:'aniimomap/7.png', name:'Map 7'},
+];
+
 // Bảng khắc hệ. Hàng = hệ tấn công, cột = hệ phòng thủ, cùng thứ tự:
 // Dark, Earth, Fire, Grass, Ice, Light, Lightning, Water, Wind
 // + khắc (×1.6), - bị kháng (×0.625), 0 bình thường (×1)

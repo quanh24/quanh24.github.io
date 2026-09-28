@@ -176,6 +176,28 @@ table.tbl:not(.cmp){border-spacing:0 2px}
 .filters select{margin-left:4px;background:var(--surface-2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:500 13px var(--body)}
 .filters .chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 @media (max-width:520px){.grp{grid-template-columns:1fr}}
+/* Map trứng */
+.map-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.map-thumb{position:relative;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:var(--surface-2);cursor:pointer;aspect-ratio:16/10}
+.map-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.map-thumb span{position:absolute;left:6px;bottom:6px;padding:2px 8px;border-radius:999px;background:rgba(10,12,20,.78);color:#fff;font:600 12px/1.4 var(--body)}
+.map-thumb[aria-pressed="true"]{border-color:var(--accent)}
+.map-view{display:flex;flex-direction:column;gap:8px}
+.map-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.map-bar b{font:600 16px/1 var(--display);min-width:70px;text-align:center}
+.map-sp{flex:1}
+.map-bar .btn{padding:8px 12px}
+.map-stage{position:relative;overflow:hidden;background:#141726;border-radius:12px;cursor:grab;touch-action:none;user-select:none}
+.map-stage.dragging{cursor:grabbing}
+.map-stage img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;pointer-events:none}
+#map-stage{height:min(74vh,760px)}
+.map-float{position:fixed;z-index:60;right:16px;bottom:16px;width:440px;height:330px;min-width:240px;min-height:180px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden;resize:both}
+.map-float-h{display:flex;align-items:center;gap:4px;padding:6px 8px;background:var(--surface-2);cursor:move;user-select:none;touch-action:none}
+.map-float-h b{flex:1;font:600 14px/1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map-float-h button{border:0;background:transparent;color:var(--text);font:600 14px/1 var(--body);padding:5px 8px;border-radius:6px;cursor:pointer}
+.map-float-h button:hover{background:var(--surface)}
+.map-op input{width:70px;vertical-align:middle}
+.map-float .map-stage{flex:1;border-radius:0}
 @media (prefers-reduced-motion:no-preference){.pick,.tabs button,.btn{transition:background-color .15s,border-color .15s,color .15s}}
 </style>
 </head>
@@ -197,6 +219,7 @@ table.tbl:not(.cmp){border-spacing:0 2px}
     <button role="tab" id="tab-combo" data-tab="combo">1 · Bộ hệ</button>
     <button role="tab" id="tab-compare" data-tab="compare">2 · So sánh bộ hệ</button>
     <button role="tab" id="tab-team" data-tab="team">3 · Đối đầu đội hình</button>
+    <button role="tab" id="tab-map" data-tab="map">4 · Map trứng</button>
   </nav>
 
   <section class="panel" id="p-combo"></section>
@@ -209,6 +232,42 @@ table.tbl:not(.cmp){border-spacing:0 2px}
     </div>
     <div id="team-results" class="panel"></div>
   </section>
+  <section class="panel" id="p-map" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Map trứng</h2>
+        <div class="filters">
+          <button class="btn" type="button" data-mact="float">Mở overlay nổi</button>
+          <button class="btn primary" type="button" data-mact="pip">Ghim cửa sổ trên game</button>
+          <button class="btn" type="button" data-mact="popup">Mở cửa sổ riêng</button>
+        </div></div>
+      <p class="note" id="map-msg">Lăn chuột để phóng to, kéo để di chuyển, nhấp đúp để vừa khung, phím ← → để đổi map. <b>Ghim cửa sổ trên game</b> mở một cửa sổ nhỏ luôn nằm trên mọi ứng dụng (Chrome/Edge), dùng được khi game chạy ở chế độ cửa sổ hoặc toàn màn hình không viền.</p>
+      <div class="map-thumbs" id="map-thumbs"></div>
+      <div class="map-view">
+        <div class="map-bar">
+          <button class="btn" type="button" data-mact="prev" aria-label="Map trước">‹</button>
+          <b id="map-title"></b>
+          <button class="btn" type="button" data-mact="next" aria-label="Map sau">›</button>
+          <span class="map-sp"></span>
+          <button class="btn" type="button" data-mact="out" aria-label="Thu nhỏ">−</button>
+          <button class="btn" type="button" data-mact="in" aria-label="Phóng to">+</button>
+          <button class="btn" type="button" data-mact="fit">Vừa khung</button>
+        </div>
+        <div class="map-stage" id="map-stage"><img id="map-img" alt="" draggable="false"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="map-float" id="map-float" hidden>
+  <div class="map-float-h" id="map-float-h">
+    <button type="button" data-mact="prev" aria-label="Map trước">‹</button>
+    <b id="map-float-title"></b>
+    <button type="button" data-mact="next" aria-label="Map sau">›</button>
+    <label class="map-op" title="Độ đậm của overlay"><input id="map-opacity" type="range" min="30" max="100" step="5" aria-label="Độ đậm overlay"></label>
+    <button type="button" data-mact="pip" title="Ghim trên mọi ứng dụng">Ghim</button>
+    <button type="button" data-mact="close" aria-label="Đóng overlay">✕</button>
+  </div>
+  <div class="map-stage" id="map-float-stage"><img id="map-float-img" alt="" draggable="false"></div>
 </div>
 
 <script src="aniimo-data.js"></script>
@@ -559,12 +618,137 @@ function renderTeamResults(){
     ${tanks.length>15?`<div><button class="btn" type="button" data-act="tank-all">${S.tankAll?'Thu gọn top 15':`Xem tất cả ${tanks.length}`}</button></div>`:''}</div>`;
 }
 
+/* ---------- 4. Map trứng ---------- */
+const mapUrl=i=>new URL(EGG_MAPS[i].file,location.href).href;
+// Khung xem ảnh: lăn chuột phóng to quanh con trỏ, kéo để di chuyển, nhấp đúp để vừa khung
+function createViewer(stage,img){
+  const v={s:1,x:0,y:0};
+  const apply=()=>{img.style.transform=`translate(${v.x}px,${v.y}px) scale(${v.s})`;};
+  const fit=()=>{
+    const W=stage.clientWidth,H=stage.clientHeight,w=img.naturalWidth,h=img.naturalHeight;
+    if(!w||!W||!H)return;
+    v.s=Math.min(W/w,H/h);v.x=(W-w*v.s)/2;v.y=(H-h*v.s)/2;apply();
+  };
+  const zoomAt=(f,cx,cy)=>{
+    const ns=Math.min(8,Math.max(.1,v.s*f)),k=ns/v.s;
+    v.x=cx-(cx-v.x)*k;v.y=cy-(cy-v.y)*k;v.s=ns;apply();
+  };
+  stage.addEventListener('wheel',e=>{e.preventDefault();const r=stage.getBoundingClientRect();zoomAt(e.deltaY<0?1.15:1/1.15,e.clientX-r.left,e.clientY-r.top);},{passive:false});
+  let drag=null;
+  stage.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX-v.x,y:e.clientY-v.y};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');});
+  stage.addEventListener('pointermove',e=>{if(!drag)return;v.x=e.clientX-drag.x;v.y=e.clientY-drag.y;apply();});
+  const end=()=>{drag=null;stage.classList.remove('dragging');};
+  stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+  stage.addEventListener('dblclick',fit);
+  img.addEventListener('load',fit);
+  return{fit,zoom:f=>zoomAt(f,stage.clientWidth/2,stage.clientHeight/2)};
+}
+const MAPV={windows:new Set()};
+function setMap(i){
+  const n=EGG_MAPS.length;S.map.i=((i%n)+n)%n;save();
+  const m=EGG_MAPS[S.map.i],src=mapUrl(S.map.i);
+  $('#map-img').src=src;$('#map-float-img').src=src;
+  $('#map-title').textContent=m.name;$('#map-float-title').textContent=m.name;
+  document.querySelectorAll('.map-thumb').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.map===S.map.i));
+  MAPV.windows.forEach(w=>w.show());
+}
+const mapMsg=t=>{$('#map-msg').textContent=t;};
+// Dựng khung xem map trong một cửa sổ khác (cửa sổ ghim Picture-in-Picture hoặc popup)
+const POP_CSS=`*{box-sizing:border-box}html,body{margin:0;height:100%;background:#10121a;color:#e9ebf3;font:14px system-ui,"Segoe UI",sans-serif}
+body{display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:4px;padding:6px 8px;background:#212534}
+.bar b{flex:1;text-align:center;font-weight:600}
+.bar button{border:0;background:#2c3142;color:#e9ebf3;font:inherit;font-weight:600;line-height:1;padding:6px 10px;border-radius:6px;cursor:pointer}
+.bar button:hover{background:#3a4057}
+.stage{flex:1;position:relative;overflow:hidden;cursor:grab;touch-action:none;user-select:none}
+.stage.dragging{cursor:grabbing}
+.stage img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;pointer-events:none}`;
+function mountMapWindow(win){
+  const d=win.document;
+  d.title='Map trứng Aniimo';
+  d.head.querySelectorAll('style[data-aniimo]').forEach(x=>x.remove());
+  const st=d.createElement('style');st.dataset.aniimo='';st.textContent=POP_CSS;d.head.appendChild(st);
+  // Thay body mới để bỏ các listener cũ nếu cửa sổ được dùng lại
+  d.body.replaceWith(d.createElement('body'));
+  d.body.innerHTML=`<div class="bar"><button data-a="prev" title="Map trước (←)">‹</button><b></b><button data-a="next" title="Map sau (→)">›</button>
+    <button data-a="out" title="Thu nhỏ">−</button><button data-a="in" title="Phóng to">+</button><button data-a="fit" title="Vừa khung">⤢</button></div>
+    <div class="stage"><img alt="" draggable="false"></div>`;
+  const img=d.querySelector('img'),title=d.querySelector('b');
+  const view=createViewer(d.querySelector('.stage'),img);
+  const entry={show(){img.src=mapUrl(S.map.i);title.textContent=EGG_MAPS[S.map.i].name;}};
+  d.body.addEventListener('click',e=>{
+    const a=e.target.closest('[data-a]');if(!a)return;
+    ({prev:()=>setMap(S.map.i-1),next:()=>setMap(S.map.i+1),out:()=>view.zoom(1/1.25),in:()=>view.zoom(1.25),fit:view.fit})[a.dataset.a]();
+  });
+  const onKey=e=>{if(e.key==='ArrowLeft')setMap(S.map.i-1);if(e.key==='ArrowRight')setMap(S.map.i+1);};
+  const onResize=()=>view.fit();
+  if(win.__aniimoOff)try{win.__aniimoOff();}catch(e){}
+  win.addEventListener('keydown',onKey);win.addEventListener('resize',onResize);
+  win.__aniimoOff=()=>{win.removeEventListener('keydown',onKey);win.removeEventListener('resize',onResize);MAPV.windows.delete(entry);};
+  win.addEventListener('pagehide',()=>MAPV.windows.delete(entry));
+  MAPV.windows.add(entry);entry.show();
+}
+async function openPip(){
+  if(!('documentPictureInPicture' in window)){mapMsg('Trình duyệt này chưa hỗ trợ cửa sổ ghim. Hãy mở trang bằng Chrome hoặc Edge bản mới, hoặc dùng "Mở cửa sổ riêng".');return;}
+  try{
+    const w=await documentPictureInPicture.requestWindow({width:S.map.pipW||520,height:S.map.pipH||400});
+    w.addEventListener('pagehide',()=>{S.map.pipW=w.innerWidth;S.map.pipH=w.innerHeight;save();});
+    mountMapWindow(w);
+  }catch(err){mapMsg('Không mở được cửa sổ ghim ('+err.message+'). Hãy mở file aniimo.html trực tiếp bằng Chrome/Edge, hoặc dùng "Mở cửa sổ riêng".');}
+}
+function openPopup(){
+  const w=window.open('','aniimo-map','popup,width=560,height=440');
+  if(!w){mapMsg('Trình duyệt đã chặn cửa sổ bật lên. Hãy cho phép popup cho trang này rồi thử lại.');return;}
+  mountMapWindow(w);
+  w.focus();
+}
+function setFloat(open){
+  S.map.float=open;save();
+  const f=$('#map-float');f.hidden=!open;
+  if(open){const p=S.map.pos;if(p){Object.assign(f.style,{left:p.x+'px',top:p.y+'px',right:'auto',bottom:'auto',width:p.w+'px',height:p.h+'px'});}requestAnimationFrame(()=>MAPV.float.fit());}
+}
+function initMap(){
+  if(!S.map)S.map={i:0,opacity:100,float:false};
+  $('#map-thumbs').innerHTML=EGG_MAPS.map((m,i)=>`<button class="map-thumb" type="button" data-map="${i}" aria-pressed="false" title="${esc(m.name)}"><img src="${esc(m.file)}" alt="" loading="lazy"><span>${esc(m.name)}</span></button>`).join('');
+  MAPV.main=createViewer($('#map-stage'),$('#map-img'));
+  MAPV.float=createViewer($('#map-float-stage'),$('#map-float-img'));
+  const f=$('#map-float'),op=$('#map-opacity');
+  op.value=S.map.opacity;f.style.opacity=S.map.opacity/100;
+  op.addEventListener('input',()=>{S.map.opacity=+op.value;f.style.opacity=op.value/100;save();});
+  // Kéo overlay bằng thanh tiêu đề; lưu vị trí và kích thước
+  const savePos=()=>{const r=f.getBoundingClientRect();S.map.pos={x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)};save();};
+  let drag=null;
+  const head=$('#map-float-h');
+  head.addEventListener('pointerdown',e=>{if(e.target.closest('button,input'))return;const r=f.getBoundingClientRect();drag={dx:e.clientX-r.left,dy:e.clientY-r.top};head.setPointerCapture(e.pointerId);});
+  head.addEventListener('pointermove',e=>{if(!drag)return;
+    const x=Math.min(Math.max(0,e.clientX-drag.dx),innerWidth-80),y=Math.min(Math.max(0,e.clientY-drag.dy),innerHeight-40);
+    Object.assign(f.style,{left:x+'px',top:y+'px',right:'auto',bottom:'auto'});});
+  head.addEventListener('pointerup',()=>{if(drag){drag=null;savePos();}});
+  new ResizeObserver(()=>{if(!f.hidden){MAPV.float.fit();savePos();}}).observe(f);
+  new ResizeObserver(()=>MAPV.main.fit()).observe($('#map-stage'));
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('[data-map]');if(t){setMap(+t.dataset.map);return;}
+    const a=e.target.closest('[data-mact]');if(!a)return;
+    const inFloat=!!a.closest('#map-float'),view=inFloat?MAPV.float:MAPV.main;
+    ({prev:()=>setMap(S.map.i-1),next:()=>setMap(S.map.i+1),out:()=>view.zoom(1/1.25),in:()=>view.zoom(1.25),fit:()=>view.fit(),
+      float:()=>setFloat(true),close:()=>setFloat(false),pip:openPip,popup:openPopup})[a.dataset.mact]();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.target.closest('input,select,textarea'))return;
+    if(S.tab!=='map'&&!S.map.float)return;
+    if(e.key==='ArrowLeft')setMap(S.map.i-1);else if(e.key==='ArrowRight')setMap(S.map.i+1);
+  });
+  setMap(S.map.i||0);
+  setFloat(!!S.map.float);
+}
+
 /* ---------- tabs & events ---------- */
-const HASH={combo:'bo-he',compare:'so-sanh',team:'doi-hinh'};
+const HASH={combo:'bo-he',compare:'so-sanh',team:'doi-hinh',map:'map-trung'};
 function setTab(tab){
   S.tab=tab;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
-  ['combo','compare','team'].forEach(k=>{$('#p-'+k).hidden=k!==tab;});
+  Object.keys(HASH).forEach(k=>{$('#p-'+k).hidden=k!==tab;});
+  if(tab==='map')requestAnimationFrame(()=>MAPV.main&&MAPV.main.fit());
   try{history.replaceState(null,'','#'+HASH[tab]);}catch(e){}
   save();
 }
@@ -637,6 +821,7 @@ document.addEventListener('change',ev=>{
 const vnDate=iso=>iso.split('-').reverse().join('/');
 $('#data-updated').innerHTML=`Dữ liệu <a href="https://aniidex.com/aniimo/" target="_blank" rel="noopener">Aniidex</a> cập nhật <time datetime="${DATA_INFO.dex}">${vnDate(DATA_INFO.dex)}</time> · Tier list <time datetime="${DATA_INFO.tier}">${vnDate(DATA_INFO.tier)}</time>`;
 renderAll();
+initMap();
 const fromHash=Object.keys(HASH).find(k=>'#'+HASH[k]===location.hash);
 setTab(fromHash||S.tab||'combo');
 </script>
