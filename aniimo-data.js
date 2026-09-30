@@ -9,20 +9,22 @@ const DATA_INFO={
 
 // Map trứng (tab 4). file = đường dẫn ảnh tính từ aniimo.html, name = tên hiện trên trang.
 // Thêm map mới: bỏ ảnh vào thư mục aniimomap/ rồi thêm một dòng ở đây.
+// gate = cổng xanh dẫn tới map (quanh cổng vàng ở giữa): 'NW' trên trái, 'N' trên, 'NE' trên phải,
+// 'W' trái, 'E' phải, 'SW' dưới trái, 'S' dưới, 'SE' dưới phải. Nhiều cổng thì ghi mảng ['N','E']; chưa biết thì để ''.
 const EGG_MAPS=[
-  {file:'aniimomap/1.png', name:'Map 1'},
-  {file:'aniimomap/2.png', name:'Map 2'},
-  {file:'aniimomap/3.png', name:'Map 3'},
-  {file:'aniimomap/4.png', name:'Map 4'},
-  {file:'aniimomap/5.png', name:'Map 5'},
-  {file:'aniimomap/6.png', name:'Map 6'},
-  {file:'aniimomap/7.png', name:'Map 7'},
-  {file:'aniimomap/8.jpg', name:'Map 8'},
-  {file:'aniimomap/9.jpg', name:'Map 9'},
-  {file:'aniimomap/10.jpg', name:'Map 10'},
-  {file:'aniimomap/11.jpg', name:'Map 11'},
-  {file:'aniimomap/12.jpg', name:'Map 12'},
-  {file:'aniimomap/13.jpg', name:'Map 13'},
+  {file:'aniimomap/1.png', name:'Map 1', gate:'NE'},
+  {file:'aniimomap/2.png', name:'Map 2', gate:'E'},
+  {file:'aniimomap/3.png', name:'Map 3', gate:'SW'},
+  {file:'aniimomap/4.png', name:'Map 4', gate:'W'},
+  {file:'aniimomap/5.png', name:'Map 5', gate:'N'},
+  {file:'aniimomap/6.png', name:'Map 6', gate:'SE'},
+  {file:'aniimomap/7.png', name:'Map 7', gate:'SW'},
+  {file:'aniimomap/8.jpg', name:'Map 8', gate:'S'},
+  {file:'aniimomap/9.jpg', name:'Map 9', gate:'S'},
+  {file:'aniimomap/10.jpg', name:'Map 10', gate:'N'},
+  {file:'aniimomap/11.jpg', name:'Map 11', gate:'N'},
+  {file:'aniimomap/12.jpg', name:'Map 12', gate:'SE'},
+  {file:'aniimomap/13.jpg', name:'Map 13', gate:'W'},
 ];
 
 // Bảng khắc hệ. Hàng = hệ tấn công, cột = hệ phòng thủ, cùng thứ tự:
