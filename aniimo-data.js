@@ -17,6 +17,12 @@ const EGG_MAPS=[
   {file:'aniimomap/5.png', name:'Map 5'},
   {file:'aniimomap/6.png', name:'Map 6'},
   {file:'aniimomap/7.png', name:'Map 7'},
+  {file:'aniimomap/8.jpg', name:'Map 8'},
+  {file:'aniimomap/9.jpg', name:'Map 9'},
+  {file:'aniimomap/10.jpg', name:'Map 10'},
+  {file:'aniimomap/11.jpg', name:'Map 11'},
+  {file:'aniimomap/12.jpg', name:'Map 12'},
+  {file:'aniimomap/13.jpg', name:'Map 13'},
 ];
 
 // Bảng khắc hệ. Hàng = hệ tấn công, cột = hệ phòng thủ, cùng thứ tự:
