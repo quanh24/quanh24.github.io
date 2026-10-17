@@ -285,7 +285,7 @@
             <button id="modeTeamCount" onclick="setMode('teamCount')">Số đội</button>
             <button id="modeMembersPerTeam" onclick="setMode('membersPerTeam')">Người / đội</button>
         </div>
-        <input type="number" id="numTeams" min="1" placeholder="3" title="Số đội">
+        <input type="number" id="numTeams" min="1" value="2" placeholder="2" title="Số đội">
         <input type="number" id="numMembersPerTeam" min="1" placeholder="4" title="Số người mỗi đội">
 
         <div class="spacer"></div>
@@ -345,7 +345,7 @@ Hùng
 
         window.onload = () => {
             document.getElementById('memberList').value = localStorage.getItem('memberList') || '';
-            document.getElementById('numTeams').value = localStorage.getItem('numTeams') || '';
+            document.getElementById('numTeams').value = localStorage.getItem('numTeams') || '2';
             document.getElementById('numMembersPerTeam').value = localStorage.getItem('numMembersPerTeam') || '';
             let tiers = [];
             try { tiers = JSON.parse(localStorage.getItem('tierList')) || []; } catch (e) { }
@@ -539,7 +539,7 @@ Hùng
 
         function resetForm() {
             if (confirm("Bạn có chắc muốn xóa toàn bộ nội dung và dữ liệu đã lưu?")) {
-                document.getElementById('numTeams').value = '';
+                document.getElementById('numTeams').value = '2';
                 document.getElementById('numMembersPerTeam').value = '';
                 document.getElementById('memberList').value = '';
                 document.getElementById('tierList').innerHTML = '';
