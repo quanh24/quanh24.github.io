@@ -1,9 +1,9 @@
 // Dữ liệu game Aniimo cho aniimo.html
-// Nguồn: https://aniidex.com (danh sách, dạng khác, tier list) — lấy ngày 27/09/2026
+// Nguồn: https://aniidex.com (danh sách, dạng khác, tier list) — lấy ngày 27/09/2026, bổ sung 29/10/2026
 
 // Ngày cập nhật hiển thị ở đầu trang (YYYY-MM-DD). Sửa khi lấy lại dữ liệu.
 const DATA_INFO={
-  dex:'2026-09-27',  // danh sách Aniimo, hệ, chỉ số, dạng khác
+  dex:'2026-10-29',  // danh sách Aniimo, hệ, chỉ số, dạng khác
   tier:'2026-09-25', // tier list Aniidex
 };
 
@@ -142,6 +142,9 @@ const DEX_RAW=[
   ["10002","Dazmand","dazmand","Nova","Support",["lightning"],["lightning"],[100,108,81,90,55,88],[]],
   ["10003","Fulmintis","fulmintis","Nova","DPS",["lightning"],["lightning"],[99,130,66,70,50,105],[["Prismana",["light","lightning"]]]],
   ["11001","Sparkelf","sparkelf","Nova","Support",["fire"],["fire"],[107,113,60,88,50,99],[]],
+  // Chưa có số trên Aniidex (ra mắt 29/10/2026 cùng Whisperwake Isles). Dạng Prismana đã công bố nhưng chưa rõ hệ.
+  // Prawnch, Saws cùng đợt nhưng chưa có hệ/chỉ số nên chưa thêm.
+  ["?","Jabster","jabster","Nova","DPS",["water"],["water"],[104,120,80,78,50,88],[]],
   // Lunara, Helion: tên tự đặt lại (Aniidex ghi Fennelun, Soleon); slug giữ nguyên để link và tier list khớp Aniidex
   ["99995","Lunara","fennelun","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],
   ["99997","Helion","soleon","Nova","DPS",["light"],["light"],[100,116,72,72,64,90],[]],

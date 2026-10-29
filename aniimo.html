@@ -100,10 +100,12 @@ table.tbl:not(.cmp){border-spacing:0 2px}
 .tbl.cmp tbody td:first-child{background:transparent;padding-left:0}
 .tbl.cmp .lbl{display:flex;flex-direction:column;gap:3px;font-size:12px}
 .tbl.cmp .grpcell{min-width:150px}
+.tbl .grpcell{min-width:120px}
 .tbl .num{font-variant-numeric:tabular-nums;font-weight:600;text-align:center}
 .tbl .best{color:var(--accent);font-weight:700}
 .tbl .rk{font:700 14px/1 var(--display);color:var(--muted);text-align:center;width:32px}
 .tbl tr.top .rk{color:var(--accent)}
+.tbl:not(.cmp) tbody tr.cur td{background:color-mix(in srgb,var(--accent) 18%,var(--surface))}
 .slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .slot{background:var(--surface-2);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .slot-h{display:flex;gap:8px;align-items:center}
@@ -389,7 +391,7 @@ function renderCombo(){
   const c=S.combo;
   let h=`<div class="card"><div class="card-h"><h2>Chọn bộ hệ</h2><span class="hint">Tối đa 3 hệ · đang chọn ${c.length}/3</span></div>
     <div class="picker">${picker(c,3,'combo')}</div></div>`;
-  if(!c.length){$('#p-combo').innerHTML=h+`<p class="empty">Chọn ít nhất một hệ để xem bảng khắc kháng.</p>`;return;}
+  if(!c.length){$('#p-combo').innerHTML=h+`<p class="empty">Chọn ít nhất một hệ để xem bảng khắc kháng.</p>`+renderDefRank();return;}
   const d=defStats(c),o=offStats(c);
   h+=`<div class="card">
     <div class="card-h"><div class="combo">${comboChips(c)}</div>
@@ -416,7 +418,34 @@ function renderCombo(){
   const owners=DEX.filter(x=>sameSet(x.els,c));
   h+=`<div class="card"><div class="card-h"><h2>Aniimo mang bộ hệ này</h2><span class="hint">${owners.length} kết quả</span></div>
     ${owners.length?`<div class="dexlist">${owners.map(dexCard).join('')}</div>`:'<p class="empty">Chưa có Aniimo nào mang đúng bộ hệ này.</p>'}</div>`;
-  $('#p-combo').innerHTML=h;
+  $('#p-combo').innerHTML=h+renderDefRank();
+}
+// Xếp hạng mọi bộ hệ theo khả năng chịu đòn từ cả 9 hệ tấn công
+const RANK_LVLS=[2,1,0,-1,-2];
+const RANK_LVL_V={2:2.56,1:1.6,0:1,'-1':0.625,'-2':0.39};
+// Các hệ tấn công rơi vào một mức; tam hệ có ×4.1 / ×0.24 thì ghi rõ hệ số
+function rankCell(vs,l){
+  const ids=TYPES.map((t,i)=>[t.id,vs[i]]).filter(([,v])=>lvl(v)===l).sort((a,b)=>b[1]-a[1]);
+  if(!ids.length)return '<span class="hint">—</span>';
+  return `<div class="combo">${ids.map(([id,v])=>Math.abs(v-RANK_LVL_V[l])<1e-3?chip(id):`${chip(id)}<small class="hint">×${fmt(v)}</small>`).join('')}</div>`;
+}
+function renderDefRank(){
+  const size=S.rankSize||2;
+  const rank=combos(size).map(c=>({c,d:defStats(c),n:DEX.filter(x=>sameSet(x.els,c)).length}))
+    .sort((a,b)=>a.d.avg-b.d.avg||a.d.weak2-b.d.weak2||a.d.weak-b.d.weak||a.d.max-b.d.max||b.d.res-a.d.res);
+  const cur=rank.findIndex(r=>sameSet(r.c,S.combo));
+  const limit=size===1||S.rankAll?rank.length:10;
+  const rows=rank.slice(0,limit).map((r,k)=>`<tr class="${k<3?'top':''}${k===cur?' cur':''}"><td class="rk">${k+1}</td>
+    <td>${comboChips(r.c)}</td>
+    ${RANK_LVLS.map(l=>`<td class="grpcell">${rankCell(r.d.vs,l)}</td>`).join('')}
+    <td class="num best">×${r.d.avg.toFixed(2)}</td><td class="num">${cell(r.d.max,'def')}</td>
+    <td class="num">${r.n||'<span class="hint">—</span>'}</td>
+    <td class="c">${k===cur?'<span class="hint">Đang xem</span>':`<button class="btn ghost" type="button" data-act="pick-combo" data-c="${r.c.join(',')}">Xem</button>`}</td></tr>`).join('');
+  return `<div class="card"><div class="card-h"><h2>Bộ hệ phòng thủ mạnh nhất</h2>
+      <div class="seg" role="group" aria-label="Số hệ trong bộ">${[1,2,3].map(n=>`<button type="button" data-act="rank-size" data-n="${n}" aria-pressed="${size===n}">${['Đơn hệ','Song hệ','Tam hệ'][n-1]}</button>`).join('')}</div></div>
+    <p class="note">Xét đòn từ cả 9 hệ, giả định chiêu đơn hệ. Xếp theo sát thương nhận trung bình thấp → cao, bằng nhau thì ít điểm yếu ×2.56 hơn, ít hệ khắc hơn, đòn đau nhất nhẹ hơn, kháng được nhiều hơn.${cur>=0?` Bộ đang chọn (${comboName(S.combo)}) xếp <b>#${cur+1}/${rank.length}</b>.`:''}</p>
+    <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Bộ hệ</th>${RANK_LVLS.map(l=>`<th class="c">${GROUP_LABEL[l]}<br>${cell(RANK_LVL_V[l],'def')}</th>`).join('')}<th class="c">Nhận TB</th><th class="c">Cao nhất</th><th class="c">Aniimo</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${size>1?`<div><button class="btn" type="button" data-act="rank-all">${S.rankAll?'Thu gọn top 10':`Xem tất cả ${rank.length} bộ`}</button></div>`:''}</div>`;
 }
 
 /* ---------- 2. So sánh ---------- */
@@ -832,6 +861,9 @@ document.addEventListener('click',ev=>{
     case 'clear-els':S.sug.els=[];renderTeamResults();break;
     case 'tank-all':S.tankAll=!S.tankAll;renderTeamResults();break;
     case 'sug-all':S.sugAll=!S.sugAll;renderTeamResults();break;
+    case 'rank-size':S.rankSize=+a.dataset.n;S.rankAll=false;renderCombo();break;
+    case 'rank-all':S.rankAll=!S.rankAll;renderCombo();break;
+    case 'pick-combo':S.combo=a.dataset.c.split(',');renderCombo();window.scrollTo({top:0,behavior:'smooth'});break;
   }
   save();
 });
