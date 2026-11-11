@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>So Sánh Nội Công</title>
+<meta name="description" content="Nghịch Thủy Hàn Mobile — nhập chỉ số, 6 viên đang đeo và 2 viên mới để biết nên chọn viên nào (PvP).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0e141b; --surface:#16202a; --surface-2:#1d2a36; --line:#2a3a48;
+  --text:#e6eef5; --muted:#8b9cad; --accent:#5cc8e0; --accent-ink:#06202a;
+  --a:#5aa9ff; --a-bg:#17304d; --b:#f2a55a; --b-bg:#3d2a17; --o:#a3b1bf; --o-bg:#26323d;
+  --good:#6fdc9c; --good-bg:#173726; --warn:#f0c56a; --warn-bg:#3a3117; --bad:#ff8f86; --bad-bg:#3f1f22;
+  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --body:"Be Vietnam Pro","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --bg:#eef3f7; --surface:#ffffff; --surface-2:#eef3f7; --line:#d6e0e8;
+    --text:#132029; --muted:#536575; --accent:#0e7f99; --accent-ink:#ffffff;
+    --a:#1f6fd1; --a-bg:#dceaff; --b:#b8620e; --b-bg:#fbe8d4; --o:#5f6e7c; --o-bg:#e3e9ee;
+    --good:#11713f; --good-bg:#d7f3e3; --warn:#8a6100; --warn-bg:#fbefcf; --bad:#b3261e; --bad-bg:#fbe0dd;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eef3f7; --surface:#ffffff; --surface-2:#eef3f7; --line:#d6e0e8;
+  --text:#132029; --muted:#536575; --accent:#0e7f99; --accent-ink:#ffffff;
+  --a:#1f6fd1; --a-bg:#dceaff; --b:#b8620e; --b-bg:#fbe8d4; --o:#5f6e7c; --o-bg:#e3e9ee;
+  --good:#11713f; --good-bg:#d7f3e3; --warn:#8a6100; --warn-bg:#fbefcf; --bad:#b3261e; --bad-bg:#fbe0dd;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--body)}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 16px 56px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:6px}
+.brand{font:700 13px/1 var(--display);letter-spacing:.3em;color:var(--accent);text-transform:uppercase}
+h1{font:700 clamp(26px,4vw,36px)/1.1 var(--display);margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:72ch}
+h2{font:600 18px/1.2 var(--display);margin:0;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+h2 .step{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-size:14px}
+h3{font:600 12px/1.2 var(--body);margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface-2);color:var(--text);font:600 14px/1 var(--body);padding:9px 14px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+.btn.sm{padding:6px 10px;font-size:13px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:var(--surface-2);border-radius:10px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px/1 var(--body);padding:8px 12px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 0 0 1px var(--line)}
+input[type=number],input[type=text],select{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 9px;font:500 14px var(--body);min-width:0}
+input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
+select{cursor:pointer}
+
+/* --- Ảnh chụp --- */
+.drop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:14px;border:1.5px dashed var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer}
+.drop.over{border-color:var(--accent)}
+.paste-on{outline:2px solid var(--accent);outline-offset:2px}
+#paste-tip{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:10;max-width:calc(100% - 32px);padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:600 13px/1.3 var(--body);box-shadow:0 4px 16px rgb(0 0 0 / .3);pointer-events:none}
+.drop img{max-height:120px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
+.drop .txt{flex:1 1 240px;display:flex;flex-direction:column;gap:6px}
+.status{font-size:13px;color:var(--muted)}
+.status.ok{color:var(--good)} .status.err{color:var(--bad)}
+progress{width:100%;height:6px;accent-color:var(--accent)}
+
+/* --- Bảng chỉ số --- */
+.panel-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.pgroup{background:var(--surface-2);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.pf{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;font-size:14px}
+.pf input{width:100%}
+input.ocr{border-color:var(--good);background:var(--good-bg)}
+input.miss{border-color:var(--warn);background:var(--warn-bg)}
+
+/* --- 6 viên đang đeo --- */
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:10px;align-items:start}
+details.slot{background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+details.slot.target{border-color:var(--o);box-shadow:0 0 0 1px var(--o)}
+details.slot>summary{cursor:pointer;list-style:none;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+details.slot>summary::-webkit-details-marker{display:none}
+.slot-t{display:flex;align-items:center;gap:8px;font-weight:600}
+.slot-t .no{font:700 13px/1 var(--display);color:var(--accent);white-space:nowrap}
+.slot-t .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-t .cnt{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap}
+.slot-t .chev{color:var(--muted);transition:transform .15s}
+details.slot[open] .chev{transform:rotate(90deg)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tags span{font-size:12px;padding:2px 7px;border-radius:6px;background:var(--surface);color:var(--muted);white-space:nowrap}
+.tags span b{color:var(--text);font-weight:600}
+.slot-body{padding:0 12px 12px;display:flex;flex-direction:column;gap:6px}
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:4px 16px;font-size:14px}
+.sum-grid div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line)}
+.sum-grid b{font-variant-numeric:tabular-nums}
+details.sum>summary{cursor:pointer;font-weight:600;font-size:14px}
+
+/* --- Dòng (dùng chung) --- */
+.ln{display:grid;grid-template-columns:minmax(0,1fr) 84px 52px 74px;gap:6px;align-items:center}
+.ln.simple{grid-template-columns:minmax(0,1fr) 92px}
+.ln select,.ln input{width:100%}
+.ln .q{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.ln .q.hi{color:var(--good)}
+.chip{display:inline-block;text-align:right;font:600 13px/1 var(--body);font-variant-numeric:tabular-nums;padding:5px 6px;border-radius:7px;background:var(--surface);color:var(--muted)}
+.chip.pos{color:var(--good)} .chip.neg{color:var(--bad)}
+.ln.weak .chip{background:var(--warn-bg);color:var(--warn)}
+.ln.rare select{border-color:var(--warn)}
+.ln-head{display:grid;grid-template-columns:minmax(0,1fr) 84px 52px 74px;gap:6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ln-head span:not(:first-child){text-align:right}
+@media (max-width:520px){
+  .ln,.ln-head{grid-template-columns:minmax(0,1fr) 76px 44px 66px}
+}
+
+/* --- Viên mới --- */
+.stones{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
+.stone{--c:var(--a);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface-2)}
+.stone.B{--c:var(--b)}
+.stone-h{display:flex;gap:8px;align-items:center}
+.stone-h .tag{font:700 15px/1 var(--display);color:var(--c);white-space:nowrap}
+.stone-h input{flex:1}
+.replace{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--o-bg)}
+.replace select{flex:1 1 220px}
+
+/* --- Kết quả --- */
+.verdict{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:12px;background:var(--surface-2);border-left:5px solid var(--vc,var(--accent))}
+.verdict b{font:700 clamp(22px,3.4vw,30px)/1.15 var(--display)}
+.verdict span{color:var(--muted)}
+.metric{display:grid;grid-template-columns:56px 1fr 78px;gap:8px;align-items:center;font-size:14px}
+.metric .lbl{color:var(--muted)}
+.metric .val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.bars{display:flex;flex-direction:column;gap:3px}
+.metric .val div{line-height:12px;font-size:13px}
+.bar{height:9px;border-radius:5px;background:var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--c)}
+.A{--c:var(--a)} .B{--c:var(--b)} .old{--c:var(--o)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.fact{background:var(--surface-2);border-radius:10px;padding:9px 12px}
+.fact b{display:block;font:700 20px/1.15 var(--display);font-variant-numeric:tabular-nums}
+.fact span{font-size:12px;color:var(--muted)}
+.res-box{background:var(--surface-2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+#result,#enh-result{display:flex;flex-direction:column;gap:12px}
+
+/* --- Bảng thay đổi --- */
+.scroll{overflow-x:auto}
+table.diff{border-collapse:separate;border-spacing:0 2px;width:100%;font-size:14px;min-width:440px}
+.diff th{font:600 12px/1.3 var(--body);color:var(--muted);text-align:right;padding:6px 8px;white-space:nowrap}
+.diff th:first-child,.diff td:first-child{text-align:left}
+.diff td{padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;background:var(--surface-2)}
+.diff td:first-child{border-radius:8px 0 0 8px}
+.diff td:last-child{border-radius:0 8px 8px 0}
+.diff th.A{color:var(--a)} .diff th.B{color:var(--b)}
+.diff .d{display:block;font-size:12px;font-weight:600}
+.diff .d.up{color:var(--good)} .diff .d.down{color:var(--bad)}
+.diff td.zero{color:var(--muted)}
+
+/* --- Nâng cao --- */
+details.adv{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+details.adv>summary{cursor:pointer;padding:14px 16px;font:600 16px/1.2 var(--display);list-style:none;display:flex;justify-content:space-between}
+details.adv>summary::after{content:"＋";color:var(--muted)}
+details.adv[open]>summary::after{content:"－"}
+.adv-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:16px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 14px}
+.kv label{display:grid;grid-template-columns:1fr 96px;gap:8px;align-items:center;font-size:13px}
+.kv label input{width:100%}
+.slider{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:10px;align-items:center;font-size:14px}
+.slider input{width:100%;accent-color:var(--accent);grid-column:1/-1}
+.slider output{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.sub{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.sub.first{border:0;padding:0}
+footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer p{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Nghịch Thủy Hàn · PvP</div>
+    <h1>So Sánh Nội Công</h1>
+    <p class="lead">Nhập chỉ số hiện tại, 6 viên nội công đang đeo và 2 viên mới (chụp ảnh hoặc gõ tay). Trang tính mỗi lựa chọn tăng bao nhiêu % sát thương và % máu hiệu dụng, mất dòng nào, được dòng nào, rồi cho biết nên chọn viên nào.</p>
+  </header>
+
+  <!-- Build -->
+  <section class="card" aria-labelledby="h-role">
+    <div class="card-h">
+      <h2 id="h-role">Build của bạn</h2>
+      <div class="seg" id="role-seg" role="group" aria-label="Build">
+        <button type="button" data-v="dps">Sát thương (DPS)</button>
+        <button type="button" data-v="healer">Tố Vấn (trị liệu)</button>
+        <button type="button" data-v="tank">Thiết Y / Tank</button>
+      </div>
+    </div>
+    <p class="hint" id="role-hint"></p>
+    <div class="row" id="noitai-row">
+      <label for="noitai-sel" class="hint">Nội tại đang dùng:</label>
+      <select id="noitai-sel">
+        <option value="none">Không dùng (Căn Cốt, Sức Bền không tính trị liệu)</option>
+        <option value="huyetHa">Huyết Hà (Căn Cốt có lợi ích trị liệu)</option>
+        <option value="cuuLinh">Cửu Linh (Sức Bền có lợi ích trị liệu)</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- 1. Chỉ số -->
+  <section class="card" aria-labelledby="h-panel">
+    <div class="card-h">
+      <h2 id="h-panel"><span class="step">1</span>Chỉ số bản thân</h2>
+      <div class="row">
+        <button class="btn ghost" id="btn-sample" type="button">Dùng số mẫu</button>
+        <button class="btn ghost" id="btn-clear-panel" type="button">Xóa</button>
+      </div>
+    </div>
+    <label class="drop" id="drop">
+      <img id="shot-preview" alt="Ảnh chụp màn hình đã chọn" hidden>
+      <div class="txt">
+        <b>Chọn, kéo thả hoặc dán (Ctrl+V) ảnh chụp màn hình chỉ số</b>
+        <span class="hint">Màn hình Nhân Vật → tab <b>PVP</b>, chụp cả màn hình. Ảnh được đọc ngay trên máy bạn, không tải lên đâu cả.</span>
+        <input type="file" id="shot" accept="image/*" hidden>
+        <progress id="ocr-progress" max="1" value="0" hidden></progress>
+        <span class="status" id="ocr-status"></span>
+      </div>
+    </label>
+    <div class="panel-groups" id="panel-groups"></div>
+    <p class="hint" id="self-hint"></p>
+  </section>
+
+  <!-- 2. Đối thủ -->
+  <section class="card" id="opp-card" aria-labelledby="h-opp">
+    <div class="card-h">
+      <h2 id="h-opp"><span class="step">2</span>Chỉ số đối thủ</h2>
+      <div class="seg" id="opp-seg" role="group" aria-label="Nguồn chỉ số đối thủ">
+        <button type="button" data-v="custom">Đối thủ cụ thể</button>
+        <button type="button" data-v="mirror">Tạm coi giống tôi</button>
+      </div>
+    </div>
+    <p class="hint" id="opp-hint"></p>
+    <p class="warn" id="opp-warn" hidden>Đang dùng số mẫu cho đối thủ. Hãy chụp ảnh chỉ số người bạn hay đối đầu để kết quả sát hơn.</p>
+    <div id="opp-body" style="display:flex;flex-direction:column;gap:12px">
+      <label class="drop" id="opp-drop">
+        <div class="txt">
+          <b>Chọn hoặc kéo thả ảnh chụp chỉ số đối thủ</b>
+          <span class="hint">Xem thông tin người chơi đó → tab <b>PVP</b>, chụp cả màn hình. Trang tự nhận đối thủ đánh Ngoại công hay Nội công.</span>
+          <input type="file" id="opp-shot" accept="image/*" hidden>
+          <progress id="opp-progress" max="1" value="0" hidden></progress>
+          <span class="status" id="opp-status"></span>
+        </div>
+      </label>
+      <div class="row">
+        <span class="hint">Đối thủ gây sát thương:</span>
+        <div class="seg" id="opptype-seg" role="group" aria-label="Loại sát thương của đối thủ">
+          <button type="button" data-v="ngoai">Ngoại công</button>
+          <button type="button" data-v="noi">Nội công</button>
+          <button type="button" data-v="mix">Trộn (theo cài đặt nâng cao)</button>
+        </div>
+      </div>
+      <div class="panel-groups" id="opp-groups"></div>
+    </div>
+  </section>
+
+  <!-- 3. 6 viên đang đeo -->
+  <section class="card" aria-labelledby="h-worn">
+    <div class="card-h">
+      <h2 id="h-worn"><span class="step">3</span>Nội công đang đeo (6 viên)</h2>
+      <button class="btn ghost" id="btn-worn-clear" type="button">Xóa cả 6</button>
+    </div>
+    <label class="drop" id="worn-drop">
+      <div class="txt">
+        <b>Chọn hoặc kéo thả cùng lúc tối đa 6 ảnh, mỗi ảnh là chi tiết một viên</b>
+        <span class="hint">Mở từng viên nội công và chụp phần <b>Tăng Cường Thuộc Tính</b> (có cả tên viên). Ảnh sẽ lần lượt điền vào các ô còn trống; nếu cả 6 ô đã có dữ liệu thì ghi đè từ ô 1.<br>Hoặc bấm vào khung này rồi <b>Ctrl+V</b> từng ảnh: mỗi lần dán điền vào ô trống tiếp theo. Muốn dán vào một ô cụ thể thì bấm vào ô đó trước.</span>
+        <input type="file" id="worn-shot" accept="image/*" multiple hidden>
+        <progress id="worn-progress" max="1" value="0" hidden></progress>
+        <span class="status" id="worn-status"></span>
+      </div>
+    </label>
+    <div class="slots" id="slots"></div>
+    <details class="sum" id="sum-box">
+      <summary>Bảng Tăng Cường Thuộc Tính (tổng 6 viên): bấm để đối chiếu với game</summary>
+      <div class="sum-grid" id="sum-grid" style="margin-top:10px"></div>
+    </details>
+  </section>
+
+  <!-- 3. Hai viên mới -->
+  <section class="card" aria-labelledby="h-stones">
+    <div class="card-h">
+      <h2 id="h-stones"><span class="step">4</span>So sánh: Viên A (đang đeo) và Viên B (mới)</h2>
+    </div>
+    <div class="replace">
+      <label for="replace-sel"><b>Viên A (đang đeo) nằm ở:</b></label>
+      <select id="replace-sel"></select>
+    </div>
+    <p class="hint"><b>Viên A</b> là viên đang đeo: chọn ô của nó ở trên để lấy dữ liệu từ bước 3 (sửa ở đâu cũng đồng bộ). <b>Viên B</b> là viên mới muốn thử. Trang tháo Viên A khỏi chỉ số rồi chấm cả hai trên cùng một mốc.</p>
+    <div class="stones">
+      <div class="stone A" id="stone-A"></div>
+      <div class="stone B" id="stone-B"></div>
+    </div>
+    <label class="row hint"><input type="checkbox" id="show-school"> Hiện dòng Khắc Chế / Kháng theo phái trong danh sách chọn (ưu tiên thấp)</label>
+  </section>
+
+  <!-- 4. Kết quả -->
+  <section class="card" aria-labelledby="h-res" aria-live="polite">
+    <h2 id="h-res"><span class="step">5</span>Kết quả</h2>
+    <div id="result"></div>
+    <div id="enh-result"></div>
+  </section>
+
+  <!-- Nâng cao -->
+  <details class="adv" id="adv">
+    <summary>Cài đặt nâng cao</summary>
+    <div class="adv-body">
+      <div class="sub first">
+        <h3>Kiểu đánh</h3>
+        <div class="row">
+          <span class="hint">Tôi gây sát thương:</span>
+          <div class="seg" id="mytype-seg" role="group" aria-label="Loại sát thương của tôi">
+            <button type="button" data-v="ngoai">Ngoại công</button>
+            <button type="button" data-v="noi">Nội công</button>
+          </div>
+        </div>
+        <div class="slider"><label for="s-oppNoi">Tỉ lệ đối thủ đánh <b>nội công</b> (ảnh hưởng giá trị Ngoại/Nội Thủ, Kháng CM, Đỡ Đòn…)</label><output id="o-oppNoi"></output>
+          <input type="range" id="s-oppNoi" min="0" max="100" step="5"></div>
+        <div class="slider"><label for="s-offW" id="l-offW">Trọng số công trong Tổng</label><output id="o-offW"></output>
+          <input type="range" id="s-offW" min="0" max="100" step="1"></div>
+        <div class="slider"><label for="s-defW">Trọng số phòng thủ trong Tổng (Aki: 5/12 ≈ 42%)</label><output id="o-defW"></output>
+          <input type="range" id="s-defW" min="0" max="200" step="1"></div>
+      </div>
+      <div class="sub" id="heal-sub">
+        <h3>Tố Vấn: bảng lợi ích Aki (điểm trên mỗi điểm chỉ số)</h3>
+        <p class="hint">Bảng 1 "Lợi ích trị liệu" và bảng 2 "Lợi ích phòng ngự" của Aki (bản 2.1). Căn Cốt và Sức Bền chỉ tính trị liệu khi chọn nội tại tương ứng. Kháng phái, Đỡ Đòn: Aki khuyên bỏ, nên để rất nhỏ.</p>
+        <div class="kv" id="heal-kv"></div>
+        <div class="kv" id="heal-def-kv"></div>
+      </div>
+      <div class="sub formula-only">
+        <h3>Công thức (tailieu.txt, mùa 2.1.1)</h3>
+        <div class="kv" id="formula-kv"></div>
+      </div>
+      <div class="sub formula-only">
+        <h3>Trọng số Aki: dòng chưa có công thức</h3>
+        <p class="hint">Lợi ích trên mỗi điểm. "Công" được quy đổi ra % bằng cách so với Tấn Công (0.6/điểm), "Thủ" quy đổi qua HP. Sức Mạnh chưa có trong bảng Aki nên đang là số ước lượng. Căn Cốt và Sức Bền tính 0 ở phần công, trừ khi nội tại dùng chúng (Aki: 0.99).</p>
+        <div class="kv" id="aki-kv"></div>
+        <div class="kv" id="aki-def-kv"></div>
+      </div>
+      <div class="sub" id="school-sub">
+        <h3>Tỉ lệ gặp từng phái</h3>
+        <p class="hint">Chỉ ảnh hưởng dòng Khắc Chế / Kháng theo phái. Mặc định chia đều.</p>
+        <div class="kv" id="school-kv"></div>
+      </div>
+      <div class="row"><button class="btn" type="button" id="btn-reset-settings">Khôi phục cài đặt mặc định</button></div>
+    </div>
+  </details>
+
+  <footer>
+    <p><b>Kết quả chỉ để tham khảo.</b> Công thức và hệ số lấy từ phân tích cộng đồng (mùa 2.1.1) và bảng lợi ích của Aki (bản 2.1). Đây không phải công thức chính thức của NetEase. Hiệu ứng đặc tính riêng của từng viên chưa được tính.</p>
+    <p>Mọi dữ liệu chỉ lưu trong trình duyệt của bạn.</p>
+  </footer>
+</div>
+
+<div id="paste-tip" role="status" hidden></div>
+<script src="nth-data.js"></script>
+<script src="nth-calc.js"></script>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const k in attrs){if(k==='class')e.className=attrs[k];else if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}kids.forEach(c=>c!=null&&e.append(c));return e;};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const STORE='nth-noicong-v2';
+const LINES=8, SLOTS=6;
+
+// ---------- Trạng thái ----------
+const blankStone=()=>({name:'',lines:Array.from({length:LINES},()=>({id:'',v:''}))});
+function defaults(){
+  const slots=Array.from({length:SLOTS},blankStone);
+  slots[0]={name:'Côn Ngô Đoạn Ngọc (mẫu)',lines:[
+    {id:'hp',v:5074},{id:'ngToBDT',v:88},{id:'khangCMNoi',v:77},{id:'khienNgoai',v:162},
+    {id:'khang1',v:102},{id:'khienKhi',v:128},{id:'linhVan',v:1},{id:'phaPhong',v:203}]};
+  return {panel:clone(NTH_SAMPLE_PANEL), slots, replace:'0', settings:clone(NTH_DEFAULT_SETTINGS),
+    stones:{A:blankStone(),B:blankStone()}};
+}
+function merge(base,saved){
+  if(!saved||typeof saved!=='object') return base;
+  for(const k in base){
+    if(!(k in saved)) continue;
+    if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k])) merge(base[k],saved[k]);
+    else base[k]=saved[k];
+  }
+  return base;
+}
+let state=defaults();
+try{const raw=localStorage.getItem(STORE); if(raw) state=merge(defaults(),JSON.parse(raw));}catch(e){}
+const fixStone=s=>{s.lines=(s.lines||[]).slice(0,LINES);while(s.lines.length<LINES)s.lines.push({id:'',v:''});return s;};
+while(state.slots.length<SLOTS) state.slots.push(blankStone());
+state.slots.length=SLOTS; state.slots.forEach(fixStone); fixStone(state.stones.A); fixStone(state.stones.B);
+let saveT;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}},250);}
+
+// ---------- Tiện ích ----------
+const pct=(x,d=2)=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(d)+'%';
+const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+const fmt=v=>Math.round(v).toLocaleString('vi-VN');
+const used=st=>st.lines.filter(l=>l.id&&num(l.v)!==0);
+const hasLines=st=>used(st).length>0;
+// Viên A = viên đang đeo: lấy từ ô đã chọn ở bước 3, hoặc nhập tay nếu không chọn ô.
+const boundA=()=>state.replace===''?null:Number(state.replace);
+const stoneOf=k=>k==='A'&&boundA()!=null?state.slots[boundA()]:state.stones[k];
+const S=()=>state.settings;
+
+// ---------- OCR (Tesseract.js, chạy trên máy người dùng) ----------
+const TESS_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let tessLoad=null, worker=null, ocrQueue=Promise.resolve();
+function loadTess(){
+  if(window.Tesseract) return Promise.resolve();
+  return tessLoad??=new Promise((ok,fail)=>{const s=document.createElement('script');s.src=TESS_URL;s.onload=ok;s.onerror=()=>{tessLoad=null;fail(new Error('Không tải được thư viện đọc chữ (cần mạng).'));};document.head.append(s);});
+}
+let progressCb=null;
+async function getWorker(statusFn){
+  statusFn('Đang tải bộ đọc chữ… (lần đầu khoảng 5–10 MB)');
+  await loadTess();
+  if(!worker){
+    worker=await Tesseract.createWorker('vie',1,{logger:m=>{if(m.status==='recognizing text'&&progressCb)progressCb(m.progress);}});
+    await worker.setParameters({tessedit_pageseg_mode:'6'});
+  }
+  return worker;
+}
+function loadImage(file){
+  return new Promise((ok,fail)=>{const img=new Image();img.onload=()=>ok(img);img.onerror=()=>fail(new Error('Không mở được ảnh.'));img.src=URL.createObjectURL(file);});
+}
+// box = [x0,y0,x1,y1] theo tỉ lệ; mode 'thr' = lọc ngưỡng, 'inv' = đảo màu xám.
+function prepCanvas(img,box,mode){
+  const sx=Math.round(img.naturalWidth*box[0]), sy=Math.round(img.naturalHeight*box[1]);
+  const sw=Math.round(img.naturalWidth*(box[2]-box[0])), sh=Math.round(img.naturalHeight*(box[3]-box[1]));
+  const scale=Math.min(3,Math.max(1,1400/sw));
+  const c=document.createElement('canvas'); c.width=Math.round(sw*scale); c.height=Math.round(sh*scale);
+  const g=c.getContext('2d',{willReadFrequently:true}); g.imageSmoothingQuality='high';
+  g.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+  const d=g.getImageData(0,0,c.width,c.height), p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    const y=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];
+    const v=mode==='thr'?(y>170?0:255):255-y; // chữ sáng nền tối → chữ đen nền trắng
+    p[i]=p[i+1]=p[i+2]=v;
+  }
+  g.putImageData(d,0,0);
+  return c;
+}
+// Chạy lần lượt các lượt đọc; done(text) trả true thì dừng. Xếp hàng để không chạy chồng.
+function ocr(img,passes,done,ui){
+  const job=ocrQueue.then(async()=>{
+    const w=await getWorker(ui.status);
+    for(let i=0;i<passes.length;i++){
+      ui.status(ui.label+(passes.length>1?` (lượt ${i+1})`:''));
+      progressCb=ui.progress;
+      const {data}=await w.recognize(prepCanvas(img,...passes[i]));
+      if(done(data.text)) break;
+    }
+  });
+  ocrQueue=job.catch(()=>{});
+  return job;
+}
+function uiFor(prefix){
+  const st=$('#'+prefix+'-status'), bar=$('#'+prefix+'-progress');
+  return {
+    status:(msg,cls='')=>{st.textContent=msg;st.className='status '+cls;},
+    progress:v=>{bar.hidden=false;bar.value=v;},
+    hide:()=>{bar.hidden=true;},
+    label:'Đang đọc chữ…',
+  };
+}
+function bindDrop(dropSel,inputSel,handler){
+  const drop=$(dropSel), inp=$(inputSel);
+  inp.addEventListener('change',()=>{handler([...inp.files]);inp.value='';});
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handler([...e.dataTransfer.files]);});
+}
+// Đọc ảnh chi tiết một viên → {name, lines}
+async function ocrStone(file,ui){
+  const img=await loadImage(file);
+  // Lượt 1 lọc ngưỡng, lượt 2 đảo màu (đọc tốt hơn chữ trên nền sáng/quầng cam như dòng Linh Vận).
+  // Gộp: lấy lượt đọc được nhiều dòng nhất làm gốc, thêm các dòng lượt kia đọc được mà gốc thiếu.
+  const runs=[]; let name='';
+  const merged=()=>{
+    const base=[...runs].sort((a,b)=>b.length-a.length)[0]||[];
+    const out=base.map(l=>({...l}));
+    runs.forEach(r=>r.forEach(l=>{if(!out.some(o=>o.id===l.id)) out.push({...l});}));
+    return out;
+  };
+  await ocr(img,[[[0,0,1,1],'thr'],[[0,0,1,1],'inv']],text=>{
+    runs.push(NTH_CALC.parseLinesText(text).lines);
+    if(!name) name=NTH_CALC.parseStoneName(text);
+    return merged().length>=LINES;
+  },ui);
+  return {name,lines:merged().slice(0,LINES)};
+}
+function putLines(st,res){
+  if(res.name) st.name=res.name;
+  st.lines=res.lines.map(l=>({id:l.id,v:l.v}));
+  fixStone(st);
+}
+
+// ---------- 1. Bảng chỉ số ----------
+const panelInputs={};
+function buildPanel(){
+  const wrap=$('#panel-groups'); wrap.textContent='';
+  NTH_PANEL.forEach(g=>{
+    const box=el('div',{class:'pgroup'},el('h3',{text:g.group}));
+    g.fields.forEach(f=>{
+      const id='p-'+f.key;
+      const inp=el('input',{type:'number',id,inputmode:'numeric',min:'0',step:'1'});
+      inp.value=state.panel[f.key]??'';
+      inp.addEventListener('input',()=>{state.panel[f.key]=inp.value===''?'':Number(inp.value);inp.classList.remove('ocr','miss');save();render();});
+      panelInputs[f.key]=inp;
+      box.append(el('div',{class:'pf'},el('label',{for:id,text:f.label}),inp));
+    });
+    wrap.append(box);
+  });
+}
+function setPanel(vals,mark){
+  for(const k in panelInputs){
+    const inp=panelInputs[k]; inp.classList.remove('ocr','miss');
+    if(k in vals){state.panel[k]=vals[k]; inp.value=vals[k]; if(mark) inp.classList.add('ocr');}
+    else if(mark) inp.classList.add('miss');
+    else {state.panel[k]=''; inp.value='';}
+  }
+  save(); render();
+}
+$('#btn-sample').onclick=()=>setPanel(clone(NTH_SAMPLE_PANEL),false);
+$('#btn-clear-panel').onclick=()=>setPanel({},false);
+
+async function panelOcr(files){
+  const file=files.find(f=>f.type.startsWith('image/')); if(!file) return;
+  const ui=uiFor('ocr'), prev=$('#shot-preview');
+  prev.src=URL.createObjectURL(file); prev.hidden=false;
+  try{
+    const img=await loadImage(file), found={}, total=Object.keys(panelInputs).length;
+    // Khung chỉ số nằm bên phải màn hình; lượt cuối đọc cả ảnh nếu vẫn thiếu.
+    await ocr(img,[[[0.70,0.30,1,0.95],'thr'],[[0.70,0.30,1,0.95],'inv'],[[0,0,1,1],'thr']],text=>{
+      const r=NTH_CALC.parsePanelText(text);
+      if(r._type&&!found._type) Object.defineProperty(found,'_type',{value:r._type,enumerable:false});
+      for(const k in r) if(found[k]==null) found[k]=r[k];
+      return Object.keys(found).length>=total;
+    },ui);
+    const got=Object.keys(found).filter(k=>k in panelInputs).length;
+    if(!got){ui.status('Không đọc được chỉ số nào. Hãy thử ảnh rõ hơn (tab PVP, cả màn hình) hoặc nhập tay.','err');return;}
+    setPanel(found,true);
+    if(found._type){S().myType=found._type;buildAdvanced();}
+    ui.status(`Đọc được ${got}/${total} chỉ số. Hãy kiểm tra lại các ô trước khi so sánh.`,got===total?'ok':'');
+  }catch(e){ui.status(e.message||String(e),'err');}
+  finally{ui.hide();}
+}
+bindDrop('#drop','#shot',panelOcr);
+// ---------- Dán ảnh (Ctrl+V) vào khung đang chọn ----------
+// Bấm vào khung nào thì khung đó sáng viền; Ctrl+V sẽ đọc ảnh vào khung đó. Mặc định: chỉ số bản thân.
+let activeZone=null;
+function setPasteZone(z){
+  if(activeZone===z) return;
+  activeZone?.classList.remove('paste-on');
+  activeZone=z; z?.classList.add('paste-on');
+  const tip=$('#paste-tip');
+  if(z){tip.textContent=`Ctrl+V: dán ảnh vào ${z.dataset.pasteName}`;tip.hidden=false;}else tip.hidden=true;
+}
+function pasteZone(elm,handler,name){
+  elm.dataset.paste='1'; elm.dataset.pasteName=name; elm._paste=handler;
+}
+document.addEventListener('pointerdown',e=>{
+  const z=e.target.closest('[data-paste]');
+  if(z) setPasteZone(z);
+  else if(!e.target.closest('#paste-tip')) setPasteZone(null);
+});
+document.addEventListener('focusin',e=>{const z=e.target.closest('[data-paste]');if(z)setPasteZone(z);});
+document.addEventListener('paste',e=>{
+  const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/'));
+  if(!f) return; // dán chữ/số vào ô nhập thì để trình duyệt xử lý
+  e.preventDefault();
+  const z=activeZone&&activeZone.isConnected?activeZone:null;
+  if(z) z._paste(f); else panelOcr([f]);
+});
+
+// ---------- Ô chọn dòng (dùng chung) ----------
+function fillSelect(sel,cur){
+  sel.textContent='';
+  sel.append(el('option',{value:'',text:'— chọn dòng —'}));
+  NTH_LINE_GROUPS.forEach(g=>{
+    if(g.low&&!S().showSchool&&!g.lines.some(l=>l.id===cur)) return;
+    const og=el('optgroup',{label:g.name});
+    g.lines.forEach(l=>og.append(el('option',{value:l.id,text:l.name+(l.rare?' ★':'')})));
+    sel.append(og);
+  });
+  sel.value=cur||'';
+}
+const allSelects=new Set();
+// Dựng 8 dòng cho một viên. full=true: thêm cột % tối đa và lợi ích.
+function lineEditor(wrap,st,label,full,onChange){
+  const rows=st.lines.map((ln,i)=>{
+    const sel=el('select',{'aria-label':`${label} dòng ${i+1}`});
+    fillSelect(sel,ln.id); allSelects.add({sel,get:()=>ln.id});
+    const inp=el('input',{type:'number',inputmode:'numeric',step:'1','aria-label':`${label} giá trị dòng ${i+1}`});
+    inp.value=ln.v;
+    const q=el('span',{class:'q'}), chip=el('span',{class:'chip',text:'—'});
+    const row=full?el('div',{class:'ln'},sel,inp,q,chip):el('div',{class:'ln simple'},sel,inp);
+    sel.addEventListener('change',()=>{ln.id=sel.value;if(sel.value==='linhVan'&&ln.v===''){inp.value=ln.v=1;}save();onChange();});
+    inp.addEventListener('input',()=>{ln.v=inp.value===''?'':Number(inp.value);save();onChange();});
+    wrap.append(row);
+    return {row,sel,inp,q,chip};
+  });
+  return rows;
+}
+function refreshSelects(){allSelects.forEach(o=>{if(o.sel.isConnected)fillSelect(o.sel,o.get());else allSelects.delete(o);});}
+
+// ---------- 2. Sáu viên đang đeo ----------
+const shortName=id=>NTH_LINES[id]?.name.replace(/^<Linh Vận> /,'Linh Vận ')||id;
+function slotSummary(i){
+  const st=state.slots[i], d=$('#slot-'+i); if(!d) return;
+  d.querySelector('.nm').textContent=st.name?.trim()||'(chưa có tên)';
+  d.querySelector('.cnt').textContent=used(st).length+'/8 dòng';
+  const tags=d.querySelector('.tags'); tags.textContent='';
+  used(st).forEach(l=>tags.append(el('span',{},shortName(l.id)+' ',el('b',{text:'+'+fmt(num(l.v))}))));
+  d.classList.toggle('target',state.replace===String(i));
+}
+function buildSlot(i){
+  const st=state.slots[i];
+  const old=$('#slot-'+i), wasOpen=old?.open;
+  const d=el('details',{class:'slot',id:'slot-'+i});
+  d.open=!!wasOpen;
+  d.append(el('summary',{},
+    el('div',{class:'slot-t'},el('span',{class:'no',text:'Ô '+(i+1)}),el('span',{class:'nm'}),el('span',{class:'cnt'}),el('span',{class:'chev',text:'›','aria-hidden':'true'})),
+    el('div',{class:'tags'})));
+  const body=el('div',{class:'slot-body'});
+  const name=el('input',{type:'text',placeholder:'Tên viên','aria-label':`Tên viên ô ${i+1}`});
+  name.value=st.name||'';
+  name.addEventListener('input',()=>{st.name=name.value;save();slotSummary(i);afterSlotsChange();});
+  const file=el('input',{type:'file',accept:'image/*',hidden:''});
+  const ocrBtn=el('button',{type:'button',class:'btn sm primary',text:'📷 Đọc ảnh'});
+  const status=el('span',{class:'status'});
+  ocrBtn.onclick=()=>file.click();
+  const read=async f=>{
+    if(!f) return;
+    d.open=true;
+    const ui={status:(m,c='')=>{status.textContent=m;status.className='status '+c;},progress:()=>{},hide:()=>{},label:'Đang đọc chữ…'};
+    try{
+      const r=await ocrStone(f,ui);
+      if(!r.lines.length){ui.status('Không đọc được dòng nào. Hãy chụp rõ phần Tăng Cường Thuộc Tính.','err');return;}
+      putLines(st,r); save(); buildSlot(i); afterSlotsChange();
+      const nd=$('#slot-'+i); nd.open=true; nd.querySelector('.slot-body .status').textContent=`Đã đọc ${r.lines.length} dòng. Hãy kiểm tra lại.`;
+      setPasteZone(nd);
+    }catch(e){ui.status(e.message||String(e),'err');}
+  };
+  file.onchange=()=>{const f=file.files[0];file.value='';read(f);};
+  pasteZone(d,f=>read(f),`ô ${i+1}`);
+  const clr=el('button',{type:'button',class:'btn ghost sm',text:'Xóa ô này'});
+  clr.onclick=()=>{state.slots[i]=blankStone();save();buildSlot(i);afterSlotsChange();};
+  body.append(el('div',{class:'row'},name,ocrBtn,clr,file),status);
+  lineEditor(body,st,`Ô ${i+1}`,false,()=>{slotSummary(i);afterSlotsChange(false);});
+  d.append(body);
+  if(old) old.replaceWith(d); else $('#slots').append(d);
+  slotSummary(i);
+}
+function afterSlotsChange(rebuildReplace=true){
+  if(rebuildReplace) buildReplace();
+  if(boundA()!=null) buildStone('A'); // Viên A đang lấy dữ liệu từ ô đã chọn
+  buildSum(); render();
+}
+// Sửa Viên A khi nó gắn với một ô → cập nhật lại ô đó và bảng tổng.
+function aChanged(){
+  const i=boundA();
+  if(i!=null){buildSlot(i); buildSum(); buildReplace();}
+  render();
+}
+function buildSum(){
+  const g=$('#sum-grid'); g.textContent='';
+  const sum=NTH_CALC.sumLines(state.slots.flatMap(s=>s.lines));
+  const ids=Object.keys(sum).sort((a,b)=>(NTH_LINES[a]?.order??1e9)-(NTH_LINES[b]?.order??1e9));
+  if(!ids.length){g.append(el('p',{class:'hint',text:'Chưa có dòng nào.'}));return;}
+  ids.forEach(id=>g.append(el('div',{},el('span',{text:NTH_LINES[id]?.name||id}),el('b',{text:'+'+fmt(sum[id])}))));
+}
+async function wornOcr(files){
+  files=files.filter(f=>f.type.startsWith('image/')).slice(0,SLOTS);
+  if(!files.length) return;
+  const ui=uiFor('worn');
+  // Ô trống trước, hết ô trống thì ghi đè từ ô 1.
+  const empty=state.slots.map((s,i)=>hasLines(s)?-1:i).filter(i=>i>=0);
+  const order=[...empty,...[...Array(SLOTS).keys()].filter(i=>!empty.includes(i))];
+  let ok=0;
+  try{
+    for(let k=0;k<files.length;k++){
+      const i=order[k];
+      ui.label=`Đang đọc ảnh ${k+1}/${files.length} → ô ${i+1}…`;
+      const r=await ocrStone(files[k],ui);
+      if(r.lines.length){putLines(state.slots[i],r);ok++;}
+      buildSlot(i);
+    }
+    save(); afterSlotsChange();
+    ui.status(`Đã đọc ${ok}/${files.length} ảnh. Mở từng ô để kiểm tra lại các dòng.`,ok===files.length?'ok':'');
+  }catch(e){ui.status(e.message||String(e),'err');}
+  finally{ui.hide();}
+}
+bindDrop('#worn-drop','#worn-shot',wornOcr);
+// Cả khung "đang đeo": mỗi lần Ctrl+V điền vào ô trống tiếp theo. Bấm vào một ô cụ thể thì dán vào ô đó.
+pasteZone($('#worn-drop').closest('.card'),f=>wornOcr([f]),'ô trống tiếp theo của 6 viên đang đeo');
+pasteZone($('#drop').closest('.card'),f=>panelOcr([f]),'chỉ số bản thân');
+$('#btn-worn-clear').onclick=()=>{if(!confirm('Xóa dữ liệu cả 6 viên đang đeo?'))return;state.slots=Array.from({length:SLOTS},blankStone);save();for(let i=0;i<SLOTS;i++)buildSlot(i);afterSlotsChange();};
+
+// ---------- 4. Viên A (đang đeo) và Viên B (mới) ----------
+function buildReplace(){
+  const sel=$('#replace-sel'); sel.textContent='';
+  sel.append(el('option',{value:'',text:'Không có trong 6 ô (nhập tay ở dưới)'}));
+  state.slots.forEach((s,i)=>sel.append(el('option',{value:String(i),text:`Ô ${i+1}: ${s.name?.trim()||'(chưa có tên)'}${hasLines(s)?'':' (trống)'}`})));
+  sel.value=state.replace;
+  for(let i=0;i<SLOTS;i++) slotSummary(i);
+}
+$('#replace-sel').addEventListener('change',e=>{state.replace=e.target.value;save();for(let i=0;i<SLOTS;i++)slotSummary(i);buildStone('A');render();});
+
+const rowEls={A:[],B:[]};
+function buildStone(key){
+  const box=$('#stone-'+key), st=stoneOf(key); box.textContent='';
+  const changed=key==='A'?aChanged:render;
+  const name=el('input',{type:'text',placeholder:'Tên viên (tùy chọn)','aria-label':'Tên viên '+key});
+  name.value=st.name||'';
+  name.addEventListener('input',()=>{st.name=name.value;save();changed();});
+  const file=el('input',{type:'file',accept:'image/*',hidden:''});
+  const ocrBtn=el('button',{type:'button',class:'btn sm primary',text:'📷 Đọc ảnh'});
+  const status=el('span',{class:'status',text:'Bấm "Đọc ảnh", kéo thả ảnh, hoặc bấm vào khung này rồi Ctrl+V để dán ảnh chi tiết viên.'});
+  ocrBtn.onclick=()=>file.click();
+  const read=async f=>{
+    if(!f||!f.type.startsWith('image/')) return;
+    const ui={status:(m,c='')=>{status.textContent=m;status.className='status '+c;},progress:()=>{},hide:()=>{},label:'Đang đọc chữ…'};
+    try{
+      const r=await ocrStone(f,ui);
+      if(!r.lines.length){ui.status('Không đọc được dòng nào. Hãy chụp rõ phần Tăng Cường Thuộc Tính.','err');return;}
+      putLines(st,r); save(); buildStone(key); changed();
+      $('#stone-'+key+' .status').textContent=`Đã đọc ${r.lines.length} dòng. Hãy kiểm tra lại.`;
+    }catch(e){ui.status(e.message||String(e),'err');}
+  };
+  file.onchange=()=>{const f=file.files[0];file.value='';read(f);};
+  if(!box.dataset.drop){
+    box.dataset.drop='1';
+    box.addEventListener('dragover',e=>{e.preventDefault();box.style.outline='2px dashed var(--c)';});
+    box.addEventListener('dragleave',()=>box.style.outline='');
+    box.addEventListener('drop',e=>{e.preventDefault();box.style.outline='';box._read?.(e.dataTransfer.files[0]);});
+  }
+  box._read=read;
+  if(!box.dataset.paste) pasteZone(box,f=>box._read(f),'Viên '+key);
+  const tag=key==='A'?`Viên A · đang đeo${boundA()!=null?' (ô '+(boundA()+1)+')':''}`:'Viên B · viên mới';
+  box.append(el('div',{class:'stone-h'},el('span',{class:'tag',text:tag}),name,ocrBtn,file),status);
+  box.append(el('div',{class:'ln-head'},el('span',{text:'Dòng'}),el('span',{text:'Giá trị'}),el('span',{text:'% tối đa'}),el('span',{text:'Lợi ích'})));
+  rowEls[key]=lineEditor(box,st,'Viên '+key,true,changed);
+  const clr=el('button',{type:'button',class:'btn ghost',text:'Xóa các dòng'});
+  clr.onclick=()=>{
+    if(key==='A'&&boundA()!=null) state.slots[boundA()]=blankStone(); else state.stones[key]=blankStone();
+    buildStone(key);save();changed();
+  };
+  box.append(el('div',{class:'row',style:'justify-content:flex-end'},clr));
+}
+const showSchool=$('#show-school');
+showSchool.checked=!!S().showSchool;
+showSchool.addEventListener('change',()=>{S().showSchool=showSchool.checked;refreshSelects();$('#school-sub').hidden=!showSchool.checked;save();});
+
+// ---------- Nâng cao ----------
+function segInit(id,get,set){
+  const seg=$(id);
+  const sync=()=>seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===get())));
+  seg.onclick=e=>{const b=e.target.closest('button');if(!b)return;set(b.dataset.v);sync();save();render();};
+  sync();
+}
+function kvInputs(wrap,items,obj,step='any'){
+  wrap.textContent='';
+  items.forEach(([key,label])=>{
+    const inp=el('input',{type:'number',step});
+    inp.value=+Number(obj[key]).toFixed(4);
+    inp.addEventListener('input',()=>{obj[key]=inp.value===''?0:Number(inp.value);save();render();});
+    wrap.append(el('label',{},el('span',{text:label}),inp));
+  });
+}
+function buildAdvanced(){
+  const s=S();
+  const sl=(id,out,get,set,f)=>{const r=$(id),o=$(out);r.value=get();o.textContent=f(r.value);r.oninput=()=>{set(Number(r.value));o.textContent=f(r.value);save();render();};};
+  sl('#s-oppNoi','#o-oppNoi',()=>Math.round(s.oppNoiRatio*100),v=>s.oppNoiRatio=v/100,v=>v+'%');
+  sl('#s-defW','#o-defW',()=>Math.round(s.defWeight*100),v=>s.defWeight=v/100,v=>v+'%');
+  sl('#s-offW','#o-offW',()=>Math.round((s.offWeight??1)*100),v=>s.offWeight=v/100,v=>v+'%');
+  kvInputs($('#heal-kv'),[
+    ['khiHai','Trị liệu · Khí Hải'],['tanCong','Trị liệu · Tấn Công'],['canCot','Trị liệu · Căn Cốt (Huyết Hà)'],['sucBen','Trị liệu · Sức Bền (Cửu Linh)'],
+    ['phaPhong','Trị liệu · Phá Phòng'],['congLonNho','Trị liệu · Công kích lớn/nhỏ'],['chinhXac','Trị liệu · Chính Xác'],['congNgTo','Trị liệu · Công Nguyên Tố'],
+    ['chiMang','Trị liệu · Chí Mạng'],['thanPhap','Trị liệu · Thân Pháp'],['khacBoss','Trị liệu · Khắc Boss'],['khacPhai','Trị liệu · Khắc phái (100% gặp)'],
+    ['ngToRieng','Trị liệu · Ng.Tố theo hệ/phe'],['sucManh','Trị liệu · Sức Mạnh'],['xuyenKhang','Trị liệu · Xuyên Kháng (ước lượng)'],['phaKhien','Trị liệu · Phá Khiên'],
+  ],s.akiHeal);
+  kvInputs($('#heal-def-kv'),[
+    ['hp','Phòng ngự · HP'],['phongThu','Phòng ngự · Phòng Thủ'],['thuLoai','Phòng ngự · Ngoại/Nội Thủ'],['khangNgTo','Phòng ngự · Kháng Ng.Tố'],
+    ['khangCM','Phòng ngự · Kháng CM'],['khangCMLoai','Phòng ngự · Kháng CM Ngoại/Nội'],['khienKhi','Phòng ngự · Khiên Khí'],['khienLoai','Phòng ngự · Khiên Khí Ngoại/Nội'],
+    ['khiHai','Phòng ngự · Khí Hải'],['canCot','Phòng ngự · Căn Cốt'],['sucBen','Phòng ngự · Sức Bền'],
+    ['doDon','Phòng ngự · Đỡ Đòn'],['doDonLoai','Phòng ngự · Đỡ Đòn Ngoại/Nội'],['khangPhai','Phòng ngự · Kháng phái'],
+  ],s.akiHealDef);
+  const lv=el('label',{},el('span',{text:'Linh Vận +1 ≈ điểm trị liệu'}),(()=>{const i=el('input',{type:'number',step:'any'});i.value=s.linhVanHeal;i.oninput=()=>{s.linhVanHeal=Number(i.value)||0;save();render();};return i;})());
+  $('#heal-kv').append(lv);
+  syncRole();
+  kvInputs($('#formula-kv'),[
+    ['kDef','Hệ số phòng thủ (10743)'],['kElem','Hệ số kháng ng.tố (2016)'],
+    ['critA','Bạo kích A (1.1445)'],['critB','Bạo kích B (80)'],['critC','Bạo kích C (1602.5)'],
+    ['critMult','Bội số chí mạng (1.5)'],['skillK','Hệ số kỹ năng K'],['skillB','Sát thương cơ sở B'],
+    ['linhVanPct','Linh Vận +1 ≈ % sát thương'],
+  ],s);
+  kvInputs($('#aki-kv'),[
+    ['tanCong','Công · Tấn Công'],['chinhXac','Công · Chính Xác'],['ngToRieng','Công · Ng.Tố theo hệ/phe'],
+    ['phaKhien','Công · Phá Khiên'],['khacBoss','Công · Khắc Boss'],['khacPhai','Công · Khắc phái (100% gặp)'],
+    ['sucManh','Công · Sức Mạnh (ước lượng)'],['khiHai','Công · Khí Hải'],['thanPhap','Công · Thân Pháp'],
+    ['canCot','Công · Căn Cốt'],['sucBen','Công · Sức Bền'],
+    ['doDon','Thủ · Đỡ Đòn (đơn vị công)'],['khangPhai','Thủ · Kháng phái (đơn vị công)'],
+  ],s.akiOff);
+  kvInputs($('#aki-def-kv'),[
+    ['hp','Thủ · HP (147/2766)'],['khienKhi','Thủ · Khiên Khí'],['khienLoai','Thủ · Khiên Khí Ngoại/Nội'],
+    ['khiHai','Thủ · Khí Hải'],['canCot','Thủ · Căn Cốt'],['sucBen','Thủ · Sức Bền'],
+  ],s.akiDef);
+  buildOpp();
+  segInit('#mytype-seg',()=>s.myType,v=>s.myType=v);
+  kvInputs($('#school-kv'),NTH_SCHOOLS.map((n,i)=>[i,n]),s.schoolShare);
+  $('#school-sub').hidden=!s.showSchool;
+}
+// ---------- Build ----------
+const ROLE_HINT={
+  dps:'Chấm theo % sát thương kỳ vọng (công thức) và % máu hiệu dụng. Tổng = Công + Thủ × 42%.',
+  healer:'Chấm theo bảng lợi ích Aki cho trị liệu PvP: Tổng = điểm trị liệu + điểm phòng ngự × 5/12. Đơn vị là "điểm", không phải %. Không cần chỉ số nhân vật.',
+  tank:'Ưu tiên sống sót: Tổng = Thủ × 100% + Công × 25%. Thủ = % máu hiệu dụng tăng thêm khi bị một DPS đánh.',
+};
+const isHealer=()=>S().role==='healer';
+function syncRole(){
+  const s=S();
+  $('#role-seg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===s.role)));
+  $('#role-hint').textContent=ROLE_HINT[s.role]||'';
+  $('#self-hint').innerHTML=SELF_HINT[s.role]||'';
+  $('#opp-card').hidden=s.role==='healer';
+  $('#noitai-row').hidden=s.role!=='healer';
+  $('#noitai-sel').value=s.noiTai;
+  $('#heal-sub').hidden=s.role!=='healer';
+  document.querySelectorAll('.formula-only').forEach(n=>n.hidden=s.role==='healer');
+  $('#l-offW').textContent=s.role==='healer'?'Trọng số trị liệu trong Tổng':'Trọng số công trong Tổng';
+}
+$('#role-seg').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const s=S(), role=b.dataset.v, p=NTH_ROLES[role];
+  s.role=role; s.offWeight=p.offWeight; s.defWeight=p.defWeight;
+  buildAdvanced(); save(); render();
+};
+$('#noitai-sel').onchange=e=>{S().noiTai=e.target.value;save();render();};
+
+// ---------- Đối thủ ----------
+// Gợi ý theo build: phần nào của đối thủ được dùng.
+const OPP_HINT={
+  dps:'DPS: dùng <b>phòng thủ</b> của đối thủ (Ngoại/Nội Thủ, Kháng Ng.Tố, Kháng Chí Mạng) để tính sát thương bạn gây ra vào người đó, và <b>chỉ số công</b> của họ để tính phần Thủ của bạn.',
+  tank:'Tank: đối thủ nên là <b>một DPS</b> bạn hay phải đỡ. Chỉ số công của họ (Công, Phá Phòng, Nguyên Tố, Xuyên Kháng, Chí Mạng) đánh vào <b>phòng thủ của bạn</b> ở bước 1. Đó là phần quyết định kết quả.',
+};
+const SELF_HINT={
+  dps:'Ô xanh: đọc được từ ảnh. Ô vàng: không đọc được, hãy nhập tay. Chỉ số này <b>đã gồm</b> các viên nội công đang đeo.',
+  tank:'Với tank, nhóm <b>Phòng Thủ</b> và HP quyết định kết quả nhiều nhất. Ô xanh: đọc được từ ảnh; ô vàng: không đọc được. Chỉ số này <b>đã gồm</b> các viên nội công đang đeo.',
+  healer:'Build Tố Vấn chấm theo bảng điểm Aki nên không cần chỉ số. Bạn vẫn có thể nhập để lưu lại.',
+};
+// Nhóm nào của đối thủ được dùng trong tính toán (để làm nổi bật).
+const OPP_USED={'Công':['cong','phaPhong','nguyenTo','xuyenKhang','chiMang'],'Phòng Thủ':['ngoaiThu','noiThu','khangCMNgoai','khangCMNoi','khangNgTo']};
+const oppInputs={};
+function buildOpp(mark){
+  const s=S(), wrap=$('#opp-groups'); wrap.textContent='';
+  NTH_PANEL.forEach(g=>{
+    if(g.group==='Cơ Bản') return; // thuộc tính cơ bản của đối thủ không dùng
+    const used=OPP_USED[g.group]||[];
+    const note=g.group==='Công'?(s.role==='tank'?'đánh vào bạn (quan trọng)':'đánh vào bạn'):(s.role==='dps'?'bạn đánh vào (quan trọng)':'bạn đánh vào');
+    const box=el('div',{class:'pgroup'},el('h3',{text:`${g.group} · ${note}`}));
+    g.fields.forEach(f=>{
+      const id='o-'+f.key;
+      const inp=el('input',{type:'number',id,inputmode:'numeric',min:'0',step:'1'});
+      inp.value=s.opp[f.key]??'';
+      if(mark) inp.classList.add(f.key in mark?'ocr':'miss');
+      inp.addEventListener('input',()=>{s.opp[f.key]=inp.value===''?'':Number(inp.value);inp.classList.remove('ocr','miss');save();syncOppWarn();render();});
+      oppInputs[f.key]=inp;
+      const lbl=el('label',{for:id,text:f.label}); if(!used.includes(f.key)) lbl.style.color='var(--muted)';
+      box.append(el('div',{class:'pf'},lbl,inp));
+    });
+    wrap.append(box);
+  });
+  segInit('#opp-seg',()=>s.oppMode,v=>{s.oppMode=v;syncOpp();});
+  segInit('#opptype-seg',()=>s.oppType||'mix',v=>{s.oppType=v;});
+  syncOpp();
+}
+function syncOppWarn(){
+  const s=S();
+  const sample=['cong','phaPhong','ngoaiThu','noiThu','khangNgTo'].every(k=>Number(s.opp[k])===NTH_SAMPLE_PANEL[k]);
+  $('#opp-warn').hidden=!(s.oppMode==='custom'&&sample);
+}
+function syncOpp(){
+  const s=S();
+  $('#opp-body').hidden=s.oppMode!=='custom';
+  $('#opp-hint').innerHTML=s.oppMode==='custom'?(OPP_HINT[s.role]||''):'Đang tạm coi đối thủ có chỉ số giống bạn. Kết quả sẽ kém chính xác, đặc biệt với tank (khi đó "đối thủ" có công rất thấp).';
+  syncOppWarn();
+}
+// Cài đặt thực dùng để tính: kiểu đánh của đối thủ cụ thể → tỉ lệ nội công 0 / 1.
+function effSettings(){
+  const s=S();
+  if(s.oppMode!=='custom'||!s.oppType||s.oppType==='mix') return s;
+  return {...s,oppNoiRatio:s.oppType==='noi'?1:0};
+}
+async function oppOcr(files){
+  const file=files.find(f=>f.type.startsWith('image/')); if(!file) return;
+  const ui=uiFor('opp'), need=[...OPP_USED['Công'],...OPP_USED['Phòng Thủ']];
+  try{
+    const img=await loadImage(file), found={}; let type=null;
+    await ocr(img,[[[0.70,0.30,1,0.95],'thr'],[[0.70,0.30,1,0.95],'inv'],[[0,0,1,1],'thr']],text=>{
+      const r=NTH_CALC.parsePanelText(text);
+      if(!type&&r._type) type=r._type;
+      for(const k in r) if(found[k]==null) found[k]=r[k];
+      return need.every(k=>found[k]!=null);
+    },ui);
+    const got=Object.keys(found).filter(k=>k in oppInputs||k==='hp');
+    if(!got.length){ui.status('Không đọc được chỉ số nào của đối thủ. Hãy thử ảnh rõ hơn hoặc nhập tay.','err');return;}
+    const s=S(); got.forEach(k=>s.opp[k]=found[k]);
+    s.oppMode='custom'; if(type) s.oppType=type;
+    buildOpp(found); save(); render();
+    const n=need.filter(k=>found[k]!=null).length;
+    ui.status(`Đọc được ${n}/${need.length} chỉ số cần dùng${type?`, đối thủ đánh ${type==='noi'?'Nội':'Ngoại'} công`:''}. Hãy kiểm tra lại các ô.`,n===need.length?'ok':'');
+  }catch(e){ui.status(e.message||String(e),'err');}
+  finally{ui.hide();}
+}
+bindDrop('#opp-drop','#opp-shot',oppOcr);
+pasteZone($('#opp-card'),f=>oppOcr([f]),'chỉ số đối thủ');
+
+$('#btn-reset-settings').onclick=()=>{
+  const o=S(); state.settings=clone(NTH_DEFAULT_SETTINGS);
+  Object.assign(state.settings,{showSchool:o.showSchool,role:o.role,offWeight:NTH_ROLES[o.role].offWeight,defWeight:NTH_ROLES[o.role].defWeight,
+    opp:o.opp,oppMode:o.oppMode,oppType:o.oppType,noiTai:o.noiTai,myType:o.myType});
+  buildAdvanced(); save(); render();
+};
+
+// ---------- 4. Kết quả ----------
+const stoneName=k=>{
+  const n=stoneOf(k).name?.trim();
+  return (k==='A'?'Viên A (đang đeo)':'Viên B')+(n?' · '+n:'');
+};
+// Định dạng theo build: Tố Vấn dùng "điểm" Aki, còn lại dùng %.
+const fv=x=>isHealer()?(x>=0?'+':'−')+Math.abs(x).toFixed(1)+' đ':pct(x);
+const offLbl=()=>isHealer()?'Trị liệu':'Công';
+function explain(old){
+  const s=S(), ow=Math.round((s.offWeight??1)*100), dw=Math.round(s.defWeight*100);
+  const base=isHealer()?'':` Mốc so sánh: chỉ số sau khi tháo Viên A. Đối thủ: ${s.oppMode==='custom'?'chỉ số ở bước 2'+(s.oppType==='noi'?', đánh nội công':s.oppType==='ngoai'?', đánh ngoại công':''):'tạm coi giống bạn'}.`;
+  const what=isHealer()
+    ?'Trị liệu và Thủ tính bằng điểm lợi ích theo bảng Aki.'
+    :'Công = % sát thương kỳ vọng tăng thêm, Thủ = % máu hiệu dụng tăng thêm.';
+  return `${what} Tổng = ${offLbl()} × ${ow}% + Thủ × ${dw}%.${base}`;
+}
+let raf=0;
+function render(){cancelAnimationFrame(raf);raf=requestAnimationFrame(doRender);}
+function doRender(){
+  const out=$('#result'); out.textContent='';
+  const A=stoneOf('A'), B=stoneOf('B'), old=A;
+  const r=NTH_CALC.compare(state.panel,A.lines,B.lines,A.lines,effSettings());
+  // chip lợi ích trên từng dòng
+  ['A','B'].forEach(k=>{
+    const per=r?r[k].per:[]; let pi=0, weakest=null;
+    rowEls[k].forEach((re,i)=>{
+      const ln=stoneOf(k).lines[i], t=NTH_LINES[ln.id];
+      re.row.classList.remove('weak'); re.row.classList.toggle('rare',!!(t&&t.rare));
+      re.q.textContent=t&&t.max&&ln.v!==''?Math.round(num(ln.v)/t.max*100)+'%':'';
+      re.q.classList.toggle('hi',!!(t&&t.max&&num(ln.v)/t.max>=0.9));
+      if(ln.id&&num(ln.v)!==0&&per[pi]){
+        const p=per[pi++]; re.chip.textContent=fv(p.total);
+        re.chip.className='chip '+(p.total>0.00005?'pos':p.total<-0.00005?'neg':'');
+        if(!t.rare&&(!weakest||p.total<weakest.p.total)) weakest={re,p};
+      }else{re.chip.textContent='—';re.chip.className='chip';}
+    });
+    if(weakest&&per.length>=6) weakest.re.row.classList.add('weak');
+  });
+  renderEnh();
+  if(!r){out.append(el('p',{class:'hint',text:'Cần nhập ít nhất Công, HP và các chỉ số phòng thủ ở bước 1.'}));return;}
+
+  const cands=['A','B'];
+  if(!hasLines(B)){
+    out.append(el('p',{class:'hint',text:hasLines(A)
+      ?`Viên A đang đóng góp ${fv(r.A.total)} tổng (${offLbl().toLowerCase()} ${fv(r.A.off)}, thủ ${fv(r.A.def)}). Nhập Viên B ở bước 4 để so sánh.`
+      :'Chọn ô của Viên A (đang đeo) và nhập Viên B (viên mới) ở bước 4 để xem kết quả.'}));
+    facts(out,r); return;
+  }
+  // Kết luận: đổi sang B hay giữ A
+  const diff=r.B.total-r.A.total, win=diff>=0?'B':'A';
+  const v=el('div',{class:'verdict'});
+  v.style.setProperty('--vc',`var(--${win.toLowerCase()})`);
+  const detail=`(${offLbl().toLowerCase()} ${fv(r.B.off-r.A.off)}, thủ ${fv(r.B.def-r.A.def)})`;
+  if(Math.abs(diff)<(isHealer()?1:0.001))
+    v.append(el('b',{text:'Hai viên gần như ngang nhau'}),el('span',{text:`Đổi sang Viên B chênh ${fv(diff)} ${detail}. Hãy chọn theo đặc tính riêng của viên.`}));
+  else if(win==='B')
+    v.append(el('b',{text:'Nên đổi sang Viên B'}),el('span',{text:`${stoneName('B')} hơn viên đang đeo ${fv(diff)} tổng ${detail}.`}));
+  else
+    v.append(el('b',{text:'Nên giữ Viên A (đang đeo)'}),el('span',{text:`Đổi sang ${stoneName('B')} thì tổng ${fv(diff)} ${detail}.`}));
+  out.append(v);
+
+  // Thanh so sánh
+  const max=Math.max(0.0001,...cands.flatMap(k=>[r[k].off,r[k].def,r[k].total].map(Math.abs)));
+  const metric=(lbl,ka)=>{
+    const bars=el('div',{class:'bars'}), vals=el('div',{class:'val'});
+    cands.forEach(k=>{
+      const x=r[k][ka], i=el('i'); i.style.width=Math.max(0,x)/max*100+'%';
+      bars.append(el('div',{class:'bar '+k,title:`${stoneName(k)}: ${fv(x)}`},i));
+      vals.append(el('div',{text:fv(x)}));
+    });
+    return el('div',{class:'metric'},el('span',{class:'lbl',text:lbl}),bars,vals);
+  };
+  out.append(el('div',{class:'res-box'},
+    el('div',{class:'legend'},...cands.map(k=>el('span',{class:k},el('i'),stoneName(k)))),
+    metric(offLbl(),"off"),metric('Thủ','def'),metric('Tổng','total'),
+    el('p',{class:'hint',text:explain(old)})));
+  facts(out,r);
+}
+function facts(out,r){
+  const d=r.detail; if(!d) return;
+  const f=(v,l)=>el('div',{class:'fact'},el('b',{text:v}),el('span',{text:l}));
+  out.append(el('h3',{text:'Chỉ số đang dùng để tính'}),
+    el('div',{class:'facts'},
+      f(Math.round(d.pCrit*100)+'%','Tỉ lệ chí mạng lên đối thủ'),
+      f(Math.round(d.rDef*100)+'%','Đối thủ giảm sát thương nhờ thủ'),
+      f(Math.round(d.rElem*100)+'%','Đối thủ giảm sát thương nguyên tố'),
+      f(Math.round(d.dElem/(d.dCong+d.dElem)*100)+'%','Phần nguyên tố trong sát thương'),
+    ));
+}
+let onlyChanged=true;
+function renderEnh(){
+  const out=$('#enh-result'); out.textContent='';
+  const A=stoneOf('A'), B=stoneOf('B');
+  if(!hasLines(B)) return;
+  // Hiện tại = 6 ô đang đeo; nếu Viên A nhập tay (không nằm trong 6 ô) thì cộng thêm A.
+  const cur=state.slots.flatMap(s=>s.lines).concat(boundA()==null?A.lines:[]);
+  const rows=NTH_CALC.enhanceTable(cur,A.lines,B.lines,A.lines);
+  const shown=rows.filter(x=>!onlyChanged||x.B!==x.cur);
+  const chk=el('input',{type:'checkbox'}); chk.checked=onlyChanged;
+  chk.onchange=()=>{onlyChanged=chk.checked;renderEnh();};
+  out.append(el('div',{class:'card-h'},el('h3',{text:'Bảng Tăng Cường Thuộc Tính: đổi Viên A sang Viên B'}),
+    el('label',{class:'row hint'},chk,'Chỉ hiện dòng thay đổi')));
+  const cell=(val,base)=>{
+    const td=el('td',{},fmt(val)); const dd=val-base;
+    if(val===0) td.className='zero';
+    if(dd) td.append(el('span',{class:'d '+(dd>0?'up':'down'),text:(dd>0?'+':'−')+fmt(Math.abs(dd))}));
+    return td;
+  };
+  const tb=el('tbody');
+  shown.forEach(x=>tb.append(el('tr',{},el('td',{text:NTH_LINES[x.id]?.name||x.id}),cell(x.cur,x.cur),cell(x.B,x.cur))));
+  if(!shown.length) tb.append(el('tr',{},el('td',{colspan:'3',text:'Không có dòng nào thay đổi.'})));
+  out.append(el('div',{class:'scroll'},el('table',{class:'diff'},
+    el('thead',{},el('tr',{},el('th',{text:'Dòng'}),el('th',{class:'A',text:'Hiện tại (đeo A)'}),el('th',{class:'B',text:'Sau khi đổi sang B'}))),tb)));
+}
+
+// ---------- Khởi động ----------
+buildPanel();
+for(let i=0;i<SLOTS;i++) buildSlot(i);
+buildReplace(); buildSum();
+buildStone('A'); buildStone('B'); buildAdvanced();
+render();
+})();
+</script>
+</body>
+</html>

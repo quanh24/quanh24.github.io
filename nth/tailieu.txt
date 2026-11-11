@@ -1,0 +1,343 @@
+PHAN TICH CONG THUC SAT THUONG PVP
+NGHICH THUY HAN MOBILE - PHIEN BAN 2.1.1
+============================================================
+
+LUU Y QUAN TRONG VE DO CHINH XAC
+-------------------------------
+Tai lieu nay tong hop mo hinh cong thuc va cac vi du da trao doi.
+Day la mo hinh tham khao theo phan tich cong dong, khong phai cong thuc
+ma nguon chinh thuc cua NetEase. Mot so he so trong cac cau tra loi truoc
+chua duoc xac minh doc lap day du. Vi vay khong nen xem cac con so duoi
+day la cong thuc chinh thuc hoac ap dung chac chan cho moi ky nang.
+
+Can dac biet kiem tra lai:
+- He so phong thu 10743.
+- He so khang nguyen to 2016.
+- Cong thuc Bao kich va Chinh xac.
+- Co che Khi thuan / Pha thuan.
+- Cach cong don va nhan cac nhom buff.
+- He so sat thuong cong trinh khac sat thuong nguoi choi.
+
+1. TONG QUAN CONG THUC
+---------------------
+Mo hinh tong quat:
+
+D = (D_cong + D_nguyen_to)
+    x M_khac_che
+    x M_ky_nang
+    x M_dac_biet
+    x M_bao_kich/do_don
+
+Trong do:
+- D_cong: sat thuong tu cong kich sau cac buoc tinh lien quan.
+- D_nguyen_to: sat thuong nguyen to sau khang nguyen to.
+- M_khac_che: he so khac che phai.
+- M_ky_nang: he so rieng cua ky nang.
+- M_dac_biet: he so tu noi cong, trang bi, dac chat, buff/debuff.
+- M_bao_kich/do_don: he so bao kich hoac do don neu co.
+
+Mo hinh tach hai nhanh sat thuong:
+
+D_cong = (B + K x A_con_lai) x (1 - R_phong_thu)
+
+D_nguyen_to = K x E x (1 - R_nguyen_to) x M_nguyen_to
+
+Sau do nhan cac he so khac neu co.
+
+Ky hieu:
+B = sat thuong co so cua ky nang.
+K = he so ky nang.
+A_con_lai = cong kich sau cac dieu chinh dang so.
+E = cong kich nguyen to.
+R_phong_thu = ty le giam sat thuong do phong thu.
+R_nguyen_to = ty le giam sat thuong do khang nguyen to.
+
+2. CONG KICH, KHI THUAN VA PHA THUAN
+----------------------------------
+Mo hinh minh hoa cong kich con lai:
+
+A_con_lai = A - S_khi_thuan + C - R_so
+
+Trong do:
+A = cong kich.
+S_khi_thuan = gia tri Khi thuan con hieu luc sau xu ly Pha thuan.
+C = khac che dang so.
+R_so = chong chiu dang so.
+
+Khong nen mac dinh Pha thuan tru Khi thuan theo ty le 1:1 trong moi
+truong hop. Can xac minh co che va nguong ap dung trong game.
+
+Vi du minh hoa:
+Cong kich = 8.000
+Khi thuan con lai = 1.000
+Khac che dang so = 200
+Chong chiu dang so = 100
+
+A_con_lai = 8.000 - 1.000 + 200 - 100 = 7.100
+
+3. PHONG THU VA PHA PHONG
+-------------------------
+He so phong thu duoc su dung trong mo hinh mua 2.1.1:
+
+R_phong_thu = F_con_lai / (F_con_lai + 10743)
+
+F_con_lai = max(0, Phong_thu_doi_phuong - Pha_phong)
+
+Ty le sat thuong cong kich con lai:
+1 - R_phong_thu
+
+Vi du:
+Phong thu doi phuong = 8.000
+Pha phong = 4.000
+F_con_lai = 4.000
+
+R = 4.000 / (4.000 + 10.743) = 27,14%
+Ty le sat thuong con lai = 72,86%
+
+Luu y: he so 10743 can duoc doi chieu voi cap nhan vat va phien ban
+cu the truoc khi dung de tinh chinh xac.
+
+4. CONG KICH NGUYEN TO VA KHANG NGUYEN TO
+-----------------------------------------
+Mo hinh:
+
+R_nguyen_to = E_khang_con_lai / (E_khang_con_lai + 2016)
+
+E_khang_con_lai = max(0, Khang_nguyen_to - Bo_qua_khang_nguyen_to)
+
+D_nguyen_to = K x E x (1 - R_nguyen_to) x M_nguyen_to
+
+Vi du:
+Khang nguyen to = 3.000
+Bo qua khang nguyen to = 2.000
+Cong kich nguyen to = 3.000
+K = 1
+
+E_khang_con_lai = 1.000
+R = 1.000 / (1.000 + 2.016) = 33,16%
+D_nguyen_to = 3.000 x 66,84% = khoang 2.005
+
+Luu y: khang nguyen to va phong thu thong thuong la hai nhanh tinh
+khac nhau trong mo hinh. Khong tu dong lay phong thu de tinh sat thuong
+nguyen to.
+
+5. BAO KICH VA KHANG BAO
+------------------------
+Gia tri bao kich con lai:
+
+C_con_lai = Bao_kich - Khang_bao
+
+Cong thuc ty le bao kich duoc neu trong phan tich cong dong:
+
+P_bao_kich =
+(1,1445 x C_con_lai + 80) / (C_con_lai + 1602,5)
+
+Can gioi han ket qua trong khoang 0% den 100%.
+
+Vi du:
+Bao kich = 3.000
+Khang bao = 2.000
+C_con_lai = 1.000
+
+P = (1,1445 x 1.000 + 80) / (1.000 + 1.602,5)
+  = khoang 47,05%
+
+Sat thuong khi bao kich:
+D_bao_kich = D_thuong x M_bao_thuong
+
+Vi du minh hoa neu bao thuong = 150%:
+D_bao_kich = D_thuong x 1,5
+
+Sat thuong ky vong neu chi co hai ket qua thuong va bao kich:
+D_tb = D_thuong x (1 - P) + D_thuong x M_bao_thuong x P
+
+Voi P = 40%, M_bao_thuong = 1,5:
+He so trung binh = 0,6 x 1 + 0,4 x 1,5 = 1,2
+
+Luu y: he so bao thuong thuc te co the thay doi boi trang bi, noi cong,
+hieu ung va khang bao thuong.
+
+6. CHINH XAC VA DO DON
+----------------------
+Cong thuc ty le chinh xac duoc neu trong phan tich mua 2:
+
+P_chinh_xac =
+(2,3804 x X + 5744) / (X + 6046)
+
+X = Chinh_xac - Do_don_doi_phuong
+
+Can gioi han ket qua trong khoang 0% den 100%.
+
+Vi du:
+Chinh xac = 2.000
+Do don = 1.000
+X = 1.000
+
+P = (2,3804 x 1.000 + 5.744) / (1.000 + 6.046)
+  = khoang 98,34%
+
+Luu y: can kiem tra lai cong thuc va gioi han trong ban game dang choi.
+Co che Do don va sat thuong sau Do don co the phu thuoc loai ky nang.
+
+7. KHAC CHE PHAI / KHANG PHAI
+-----------------------------
+Mo hinh he so phan tram:
+
+M_khac_che = 1 + C_phan_tram - R_phan_tram
+
+Vi du:
+Khac che phai = +8%
+Khang phai = 3%
+
+M = 1 + 0,08 - 0,03 = 1,05
+
+Sat thuong tang 5%.
+
+Phan biet:
+- Khac che dang so: co the tac dong vao nhanh cong kich dang so.
+- Khang dang so: co the tru vao nhanh cong kich dang so.
+- Khac che %: he so tang sat thuong.
+- Khang %: he so giam sat thuong.
+
+Can xac minh nhom chi so va thu tu tinh trong tung truong hop.
+
+8. TANG SAT THUONG VA GIAM SAT THUONG
+------------------------------------
+Neu cac hieu ung thuoc cac nhom nhan doc lap:
+
+M_tong = (1 + Tang_nhom_1)
+         x (1 + Tang_nhom_2)
+         x (1 - Giam_nhom_3)
+
+Vi du:
+Tang sat thuong ky nang = 10%
+Tang khac che = 5%
+Giam sat thuong muc tieu = 20%
+
+M = 1,10 x 1,05 x 0,80 = 0,924
+
+Sat thuong con 92,4% so voi truoc cac hieu ung nay.
+
+Khong cong tat ca phan tram neu chung thuoc cac nhom nhan khac nhau.
+Can xac minh hieu ung nao cung nhom va hieu ung nao khac nhom.
+
+9. VI DU TINH SAT THUONG TONG HOP
+--------------------------------
+Day la vi du gia dinh de minh hoa cach ghep cac thanh phan.
+Khong phai ket qua do trong game.
+
+Nguoi tan cong:
+- Cong kich: 8.000
+- Khi thuan con lai: 1.000
+- Khac che dang so: 200
+- Chong chiu dang so: 100
+- He so ky nang K: 1,2
+- Sat thuong co so B: 2.000
+- Cong kich nguyen to: 3.000
+- Khac che phai: +5%
+- Tang sat thuong ky nang: +10%
+- Ty le bao kich: 40%
+- Bao thuong: 150%
+
+Nguoi phong thu:
+- Phong thu: 8.000
+- Pha phong: 4.000
+- Khang nguyen to: 3.000
+- Bo qua khang nguyen to: 2.000
+
+Buoc 1 - Cong kich con lai:
+A = 8.000 - 1.000 + 200 - 100 = 7.100
+
+Buoc 2 - Sat thuong cong kich:
+F_con_lai = 8.000 - 4.000 = 4.000
+R_phong_thu = 4.000 / (4.000 + 10.743) = 27,14%
+
+D_cong = (2.000 + 1,2 x 7.100) x (1 - 0,2714)
+       = khoang 7.666
+
+Buoc 3 - Sat thuong nguyen to:
+E_khang_con_lai = 3.000 - 2.000 = 1.000
+R_nguyen_to = 1.000 / (1.000 + 2.016) = 33,16%
+
+D_nguyen_to = 1,2 x 3.000 x (1 - 0,3316)
+            = khoang 2.406
+
+Buoc 4 - Cong hai nhanh:
+D_co_ban = 7.666 + 2.406 = 10.072
+
+Buoc 5 - Nhan khac che va tang sat thuong:
+D = 10.072 x 1,05 x 1,10
+  = khoang 11.633
+
+Buoc 6 - Sat thuong ky vong co bao kich va chinh xac:
+M_bao_kich_tb = 0,6 x 1 + 0,4 x 1,5 = 1,2
+Neu xac suat trung = 98%:
+
+D_tb = 11.633 x 1,2 x 0,98
+     = khoang 13.681
+
+Ket qua nay chua tinh Do don, buff/debuff rieng, gioi han sat thuong,
+he so tung ky nang va cac co che chua duoc xac minh.
+
+10. DANH GIA CHI SO CHO HUYEN CO PVP
+------------------------------------
+Cac nhom chi so can so sanh:
+- Cong kich va cac chi so tang sat thuong.
+- Cong kich nguyen to.
+- Pha phong va bo qua khang nguyen to.
+- Bao kich va bao thuong.
+- Chinh xac.
+- Khac che phai.
+- Sinh ton: phong thu, Khi thuan, khang nguyen to.
+
+Khong co thu tu uu tien co dinh cho moi nhan vat. Gia tri cua tung chi so
+phu thuoc muc tieu, cap doi thu, ky nang, noi cong va buff dang su dung.
+Huong dan build Huyen Co PvP 2.1.1 co the dung de tham khao, nhung khong
+nen ap dung bang xep hang cua mot phai cho tat ca phai.
+
+11. SAT THUONG NGUOI CHOI VA SAT THUONG CONG TRINH
+-------------------------------------------------
+Khong nen dung nguyen cong thuc danh nguoi cho sat thuong pha tru.
+
+Danh nguoi PvP co the tinh:
+- Phong thu nguoi choi.
+- Khang nguyen to.
+- Khi thuan / Pha thuan.
+- Bao kich / Do don.
+- Khac che phai.
+- Buff va giam sat thuong.
+
+Pha tru can kiem tra rieng:
+- He so sat thuong cong trinh.
+- Ky nang nao tac dong len cong trinh.
+- Buff tang sat thuong cong trinh.
+- Co che phong thu / trang thai cua cong trinh.
+- Gioi han sat thuong va thoi gian hoi chieu.
+
+12. NGUON THAM KHAO
+-------------------
+Cac nguon da duoc nhac trong cuoc trao doi:
+- 17173: phan tich thuoc tinh PvP mua moi, cap 79 (thang 7/2024).
+- 17173: huong dan Huyen Co PvP 2.1.1 (thang 7/2024).
+- TapTap: bai phan tich cong thuc sat thuong mua 1 (chi tham khao lich su).
+- Bilibili: cac video va bai phan tich cong dong ve cong kich, nguyen to,
+  phong thu va he so sat thuong.
+
+Luu y: Cac ma nguon trich dan trong cuoc tro chuyen khong duoc dua vao
+file TXT nay. Hay doi chieu bai viet goc va phien ban cu the truoc khi
+dung cac he so de tinh toan thuc te.
+
+============================================================
+KET LUAN
+============================================================
+Cong thuc sat thuong PvP nen duoc xem theo cac nhanh:
+1. Sat thuong cong kich -> Khi thuan/Pha thuan -> Phong thu/Pha phong.
+2. Sat thuong nguyen to -> Khang nguyen to/Bo qua khang.
+3. Nhan cac he so khac che, ky nang, buff/debuff.
+4. Xet Bao kich, Chinh xac va Do don.
+5. Kiem tra rieng co che sat thuong cong trinh.
+
+Cac he so 10743, 2016 va cac cong thuc Bao kich/Chinh xac trong tai lieu
+la cac gia tri tham khao tu phan tich cong dong cho mua 2.1.1, can duoc
+kiem chung bang thu nghiem trong game truoc khi su dung lam cong cu
+tinh toan chinh xac.
