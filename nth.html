@@ -128,6 +128,27 @@ details.sum>summary{cursor:pointer;font-weight:600;font-size:14px}
 .replace{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--o-bg)}
 .replace select{flex:1 1 220px}
 
+/* --- Class --- */
+.cls-row{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.cls-row label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.cls-pick{display:flex;align-items:center;gap:10px}
+.cls-pick img,.opp-cls img{width:44px;height:44px;border-radius:10px;background:var(--surface-2);padding:4px}
+.opp-cls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.conv{display:flex;flex-wrap:wrap;gap:6px}
+.conv span{font-size:12px;padding:3px 8px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+.conv b{color:var(--text);font-weight:600}
+/* --- Hướng dẫn --- */
+dialog#help{max-width:min(920px,calc(100% - 24px));width:100%;max-height:calc(100% - 24px);padding:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text)}
+dialog#help::backdrop{background:rgb(0 0 0 / .55)}
+.help-h{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.help-b{padding:16px;display:flex;flex-direction:column;gap:16px}
+.help-b ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px}
+.shots figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.shots img{width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface-2)}
+.shots figcaption{font-size:13px;color:var(--muted)}
+.shots figure.wide{grid-column:1/-1}
+
 /* --- Kết quả --- */
 .verdict{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:12px;background:var(--surface-2);border-left:5px solid var(--vc,var(--accent))}
 .verdict b{font:700 clamp(22px,3.4vw,30px)/1.15 var(--display)}
@@ -184,29 +205,26 @@ footer p{margin:0}
 <div class="wrap">
   <header>
     <div class="brand">Nghịch Thủy Hàn · PvP</div>
-    <h1>So Sánh Nội Công</h1>
+    <div class="card-h"><h1>So Sánh Nội Công</h1><button class="btn" type="button" id="btn-help">📖 Hướng dẫn sử dụng</button></div>
     <p class="lead">Nhập chỉ số hiện tại, 6 viên nội công đang đeo và 2 viên mới (chụp ảnh hoặc gõ tay). Trang tính mỗi lựa chọn tăng bao nhiêu % sát thương và % máu hiệu dụng, mất dòng nào, được dòng nào, rồi cho biết nên chọn viên nào.</p>
   </header>
 
-  <!-- Build -->
+  <!-- Class & build -->
   <section class="card" aria-labelledby="h-role">
     <div class="card-h">
-      <h2 id="h-role">Build của bạn</h2>
+      <h2 id="h-role">Class và build</h2>
       <div class="seg" id="role-seg" role="group" aria-label="Build">
         <button type="button" data-v="dps">Sát thương (DPS)</button>
-        <button type="button" data-v="healer">Tố Vấn (trị liệu)</button>
-        <button type="button" data-v="tank">Thiết Y / Tank</button>
+        <button type="button" data-v="healer">Trị liệu</button>
+        <button type="button" data-v="tank">Tank</button>
       </div>
     </div>
-    <p class="hint" id="role-hint"></p>
-    <div class="row" id="noitai-row">
-      <label for="noitai-sel" class="hint">Nội tại đang dùng:</label>
-      <select id="noitai-sel">
-        <option value="none">Không dùng (Căn Cốt, Sức Bền không tính trị liệu)</option>
-        <option value="huyetHa">Huyết Hà (Căn Cốt có lợi ích trị liệu)</option>
-        <option value="cuuLinh">Cửu Linh (Sức Bền có lợi ích trị liệu)</option>
-      </select>
+    <div class="cls-row">
+      <div class="cls-pick"><img id="cls-icon" alt=""><label>Class của bạn<select id="cls-sel"></select></label></div>
+      <label>Nội tại lớn chọn thêm (của class khác)<select id="bp-sel"></select></label>
     </div>
+    <div class="conv" id="conv-list"></div>
+    <p class="hint" id="role-hint"></p>
   </section>
 
   <!-- 1. Chỉ số -->
@@ -221,9 +239,9 @@ footer p{margin:0}
     <label class="drop" id="drop">
       <img id="shot-preview" alt="Ảnh chụp màn hình đã chọn" hidden>
       <div class="txt">
-        <b>Chọn, kéo thả hoặc dán (Ctrl+V) ảnh chụp màn hình chỉ số</b>
-        <span class="hint">Màn hình Nhân Vật → tab <b>PVP</b>, chụp cả màn hình. Ảnh được đọc ngay trên máy bạn, không tải lên đâu cả.</span>
-        <input type="file" id="shot" accept="image/*" hidden>
+        <b>Chọn, kéo thả hoặc dán (Ctrl+V) ảnh chụp chỉ số: nên dùng cả 2 ảnh</b>
+        <span class="hint">① Màn hình Nhân Vật → tab <b>PVP</b> (có Ngoại/Nội Thủ riêng, tự nhận class). ② Bấm <b>Xem chi tiết</b> (có Phá Khiên, Khiên Khí, Sát Thương Chí Mạng, Khắc/Kháng phái %). Chụp cả màn hình; ảnh được đọc ngay trên máy bạn, không tải lên đâu.</span>
+        <input type="file" id="shot" accept="image/*" multiple hidden>
         <progress id="ocr-progress" max="1" value="0" hidden></progress>
         <span class="status" id="ocr-status"></span>
       </div>
@@ -246,13 +264,15 @@ footer p{margin:0}
     <div id="opp-body" style="display:flex;flex-direction:column;gap:12px">
       <label class="drop" id="opp-drop">
         <div class="txt">
-          <b>Chọn hoặc kéo thả ảnh chụp chỉ số đối thủ</b>
-          <span class="hint">Xem thông tin người chơi đó → tab <b>PVP</b>, chụp cả màn hình. Trang tự nhận đối thủ đánh Ngoại công hay Nội công.</span>
-          <input type="file" id="opp-shot" accept="image/*" hidden>
+          <b>Chọn hoặc kéo thả ảnh chụp chỉ số đối thủ (1–2 ảnh)</b>
+          <span class="hint">Xem thông tin người chơi đó → tab <b>PVP</b>, và nếu được thì cả màn hình <b>Xem chi tiết</b>. Trang tự nhận class và kiểu đánh Ngoại/Nội công.</span>
+          <input type="file" id="opp-shot" accept="image/*" multiple hidden>
           <progress id="opp-progress" max="1" value="0" hidden></progress>
           <span class="status" id="opp-status"></span>
         </div>
       </label>
+      <div class="opp-cls"><img id="oppcls-icon" alt="" hidden><label class="hint" for="oppcls-sel">Class đối thủ:</label><select id="oppcls-sel"></select>
+        <span class="hint">Biết class thì dòng Khắc Chế / Kháng đúng phái đó được tính đủ, phái khác bằng 0.</span></div>
       <div class="row">
         <span class="hint">Đối thủ gây sát thương:</span>
         <div class="seg" id="opptype-seg" role="group" aria-label="Loại sát thương của đối thủ">
@@ -338,13 +358,13 @@ footer p{margin:0}
         <div class="kv" id="heal-def-kv"></div>
       </div>
       <div class="sub formula-only">
-        <h3>Công thức (tailieu.txt, mùa 2.1.1)</h3>
+        <h3>Công thức Hel (PvP cấp 79): xem nth/congthuc-hel.txt</h3>
         <div class="kv" id="formula-kv"></div>
       </div>
       <div class="sub formula-only">
-        <h3>Trọng số Aki: dòng chưa có công thức</h3>
-        <p class="hint">Lợi ích trên mỗi điểm. "Công" được quy đổi ra % bằng cách so với Tấn Công (0.6/điểm), "Thủ" quy đổi qua HP. Sức Mạnh chưa có trong bảng Aki nên đang là số ước lượng. Căn Cốt và Sức Bền tính 0 ở phần công, trừ khi nội tại dùng chúng (Aki: 0.99).</p>
-        <div class="kv" id="aki-kv"></div>
+        <h3>Quy đổi thuộc tính cơ bản và nội tại lớn</h3>
+        <p class="hint">Thuộc tính chính là Sức Mạnh (class ngoại công) hoặc Khí Hải (class nội công). Phần thủ của Căn Cốt và Sức Bền lấy theo bảng Aki, quy đổi qua HP.</p>
+        <div class="kv" id="conv-kv"></div>
         <div class="kv" id="aki-def-kv"></div>
       </div>
       <div class="sub" id="school-sub">
@@ -357,12 +377,32 @@ footer p{margin:0}
   </details>
 
   <footer>
-    <p><b>Kết quả chỉ để tham khảo.</b> Công thức và hệ số lấy từ phân tích cộng đồng (mùa 2.1.1) và bảng lợi ích của Aki (bản 2.1). Đây không phải công thức chính thức của NetEase. Hiệu ứng đặc tính riêng của từng viên chưa được tính.</p>
+    <p><b>Kết quả chỉ để tham khảo.</b> DPS và Tank dùng công thức PvP cấp 79 từ máy tính của <b>Bilibili: 折字愿为安</b> (bản Việt hóa do Hel chỉnh: tiktok @hel.nth); Trị liệu dùng bảng lợi ích của Aki (bản 2.1). Đây không phải công thức chính thức của NetEase. Hiệu ứng đặc tính riêng của từng viên chưa được tính.</p>
     <p>Mọi dữ liệu chỉ lưu trong trình duyệt của bạn.</p>
   </footer>
 </div>
 
 <div id="paste-tip" role="status" hidden></div>
+<dialog id="help" aria-labelledby="help-title">
+  <div class="help-h"><h2 id="help-title">Hướng dẫn sử dụng</h2><button class="btn ghost" type="button" id="help-close" aria-label="Đóng">✕</button></div>
+  <div class="help-b">
+    <ol>
+      <li><b>Class và build:</b> chọn class (hoặc để trang tự nhận từ ảnh), chọn thêm nội tại lớn nếu có. Build (DPS / Trị liệu / Tank) đổi theo class, có thể đổi tay.</li>
+      <li><b>Chỉ số bản thân:</b> chụp 2 ảnh như mẫu ① và ② bên dưới, chọn cả hai cùng lúc hoặc dán (Ctrl+V) lần lượt. Kiểm tra các ô vàng.</li>
+      <li><b>Chỉ số đối thủ:</b> chụp tương tự từ thông tin người chơi bạn hay đối đầu (Tank: chọn một DPS).</li>
+      <li><b>6 viên đang đeo:</b> mở từng viên, chụp phần chi tiết như mẫu ③. Chọn cả 6 ảnh, hoặc bấm vào khung rồi Ctrl+V từng ảnh.</li>
+      <li><b>So sánh:</b> chọn ô của Viên A (đang đeo), nhập hoặc chụp Viên B (viên mới). Xem kết quả ở bước 5.</li>
+    </ol>
+    <div class="shots">
+      <figure class="wide"><img loading="lazy" src="nth/image/vi-du-chi-so-co-ban.png" alt="Mẫu ảnh màn hình Nhân Vật, tab PVP"><figcaption>① Màn hình Nhân Vật, tab PVP: chụp cả màn hình (icon class nằm cạnh tên).</figcaption></figure>
+      <figure class="wide"><img loading="lazy" src="nth/image/vi-du-chi-so-chi-tiet.png" alt="Mẫu ảnh màn hình Xem chi tiết"><figcaption>② Bấm "Xem chi tiết": có Phá Khiên, Khiên Khí, Sát Thương Chí Mạng, Khắc / Kháng phái %.</figcaption></figure>
+      <figure><img loading="lazy" src="nth/image/vi-du-noi-cong-1.png" alt="Mẫu ảnh chi tiết nội công"><figcaption>③ Chi tiết một viên nội công: chụp từ tên viên tới hết 8 dòng Tăng Cường Thuộc Tính.</figcaption></figure>
+      <figure><img loading="lazy" src="nth/image/vi-du-noi-cong-2.png" alt="Mẫu ảnh chi tiết nội công kiểu khác"><figcaption>Kiểu khác cũng được: tên viên ở trên cùng cạnh icon.</figcaption></figure>
+      <figure><img loading="lazy" src="nth/image/vi-du-noi-cong-3.png" alt="Mẫu ảnh chi tiết nội công"><figcaption>Có dòng hiếm &lt;Linh Vận&gt; Lv Đặc Tính.</figcaption></figure>
+      <figure><img loading="lazy" src="nth/image/vi- du-noi-cong-4.png" alt="Mẫu ảnh chi tiết nội công"><figcaption>Ảnh cắt gọn quanh khung chi tiết cũng đọc được.</figcaption></figure>
+    </div>
+  </div>
+</dialog>
 <script src="nth-data.js"></script>
 <script src="nth-calc.js"></script>
 <script>
@@ -370,7 +410,7 @@ footer p{margin:0}
 const $=s=>document.querySelector(s);
 const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const k in attrs){if(k==='class')e.className=attrs[k];else if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}kids.forEach(c=>c!=null&&e.append(c));return e;};
 const clone=o=>JSON.parse(JSON.stringify(o));
-const STORE='nth-noicong-v2';
+const STORE='nth-noicong-v2', VER=3;
 const LINES=8, SLOTS=6;
 
 // ---------- Trạng thái ----------
@@ -380,7 +420,7 @@ function defaults(){
   slots[0]={name:'Côn Ngô Đoạn Ngọc (mẫu)',lines:[
     {id:'hp',v:5074},{id:'ngToBDT',v:88},{id:'khangCMNoi',v:77},{id:'khienNgoai',v:162},
     {id:'khang1',v:102},{id:'khienKhi',v:128},{id:'linhVan',v:1},{id:'phaPhong',v:203}]};
-  return {panel:clone(NTH_SAMPLE_PANEL), slots, replace:'0', settings:clone(NTH_DEFAULT_SETTINGS),
+  return {ver:VER, panel:clone(NTH_SAMPLE_PANEL), slots, replace:'0', settings:clone(NTH_DEFAULT_SETTINGS),
     stones:{A:blankStone(),B:blankStone()}};
 }
 function merge(base,saved){
@@ -393,7 +433,21 @@ function merge(base,saved){
   return base;
 }
 let state=defaults();
-try{const raw=localStorage.getItem(STORE); if(raw) state=merge(defaults(),JSON.parse(raw));}catch(e){}
+try{
+  const raw=localStorage.getItem(STORE);
+  if(raw){
+    const saved=JSON.parse(raw);
+    // Bản cũ (công thức tailieu.txt): giữ dữ liệu đã nhập, bỏ hệ số công thức cũ.
+    if((saved.ver||0)<VER&&saved.settings){
+      const o=saved.settings;
+      saved.settings={role:o.role,showSchool:o.showSchool,oppMode:o.oppMode,oppType:o.oppType,myType:o.myType,
+        offWeight:o.offWeight,defWeight:o.defWeight,opp:o.opp};
+      saved.ver=VER;
+    }
+    state=merge(defaults(),saved);
+  }
+}catch(e){}
+if(state.settings.schoolShare.length!==NTH_SCHOOLS.length) state.settings.schoolShare=NTH_SCHOOLS.map(()=>1);
 const fixStone=s=>{s.lines=(s.lines||[]).slice(0,LINES);while(s.lines.length<LINES)s.lines.push({id:'',v:''});return s;};
 while(state.slots.length<SLOTS) state.slots.push(blankStone());
 state.slots.length=SLOTS; state.slots.forEach(fixStone); fixStone(state.stones.A); fixStone(state.stones.B);
@@ -497,6 +551,65 @@ async function ocrStone(file,ui){
   },ui);
   return {name,lines:merged().slice(0,LINES)};
 }
+// ---------- Nhận diện class từ icon cạnh tên (màn hình Nhân Vật) ----------
+const ICON_T=16;
+let iconTmpls=null;
+function loadIconTemplates(){
+  return iconTmpls??=Promise.all(NTH_CLASSES.map(c=>new Promise(ok=>{
+    const im=new Image();
+    im.onload=()=>{
+      const cv=document.createElement('canvas'); cv.width=cv.height=ICON_T;
+      const g=cv.getContext('2d',{willReadFrequently:true}); g.drawImage(im,0,0,ICON_T,ICON_T);
+      ok({id:c.id,t:ICON_T,data:g.getImageData(0,0,ICON_T,ICON_T).data});
+    };
+    im.onerror=()=>ok(null);
+    im.src=c.icon;
+  }))).then(a=>a.filter(Boolean));
+}
+// Trả về id class hoặc null. Icon nằm ở góc trên trái, cạnh tên nhân vật.
+async function detectClass(img){
+  const tmpls=await loadIconTemplates(); if(!tmpls.length) return null;
+  const W=img.naturalWidth, H=img.naturalHeight;
+  const box=[0.04,0,0.16,0.13], sx=W*box[0], sw=W*(box[2]-box[0]), sh=H*box[3];
+  let best=[];
+  for(const k of [0.05,0.058,0.066,0.074]){
+    const f=ICON_T/(k*H), cw=Math.max(ICON_T,Math.round(sw*f)), ch=Math.max(ICON_T,Math.round(sh*f));
+    const cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
+    const g=cv.getContext('2d',{willReadFrequently:true}); g.imageSmoothingQuality='high';
+    g.drawImage(img,sx,0,sw,sh,0,0,cw,ch);
+    best.push(...NTH_CALC.iconScores({data:g.getImageData(0,0,cw,ch).data,w:cw,h:ch},tmpls));
+  }
+  const by={}; for(const s of best) if(!by[s.id]||s.score<by[s.id].score) by[s.id]=s;
+  const r=Object.values(by).sort((a,b)=>a.score-b.score);
+  return r[0]&&r[0].score<0.08&&(!r[1]||r[1].score-r[0].score>=0.03)?r[0].id:null;
+}
+// Đọc 1–2 ảnh chỉ số (màn hình Nhân Vật và/hoặc Xem chi tiết) → {vals, weak, type, cls, screens}
+async function readStatShots(files,ui){
+  const vals={}, weak=new Set(), screens=[]; let type=null, cls=null;
+  for(const [fi,file] of files.entries()){
+    const img=await loadImage(file);
+    ui.label=files.length>1?`Đang đọc ảnh ${fi+1}/${files.length}…`:'Đang đọc chữ…';
+    const found={}, fw=new Set(); let scr='basic';
+    await ocr(img,[[[0.40,0.15,1,0.92],'thr'],[[0.40,0.15,1,0.92],'inv'],[[0,0,1,1],'thr']],text=>{
+      const r=NTH_CALC.parsePanelText(text);
+      if(r._type&&!type) type=r._type;
+      if(r._screen==='detail') scr='detail';
+      for(const k in r) if(found[k]==null){found[k]=r[k]; if(r._weak.has(k)) fw.add(k);}
+      const need=scr==='detail'?['phaKhien','khienKhi','stcm','cong','chinhXac','chiMang']:['cong','phaPhong','ngoaiThu','noiThu','khangNgTo','hp'];
+      return need.every(k=>found[k]!=null)&&Object.keys(found).length>=(scr==='detail'?14:20);
+    },ui);
+    if(scr==='basic'&&!cls){ui.status('Đang nhận diện class…'); cls=await detectClass(img);}
+    screens.push(scr);
+    for(const k in found){
+      // Số trung bình ở màn hình chi tiết không ghi đè số riêng ngoại/nội của màn hình Nhân Vật.
+      if(vals[k]!=null&&fw.has(k)) continue;
+      if(vals[k]==null||!fw.has(k)){vals[k]=found[k]; if(fw.has(k)) weak.add(k); else weak.delete(k);}
+    }
+  }
+  return {vals,weak,type,cls,screens};
+}
+const screenName=s=>s==='detail'?'Xem chi tiết':'Nhân Vật';
+
 function putLines(st,res){
   if(res.name) st.name=res.name;
   st.lines=res.lines.map(l=>({id:l.id,v:l.v}));
@@ -504,16 +617,16 @@ function putLines(st,res){
 }
 
 // ---------- 1. Bảng chỉ số ----------
-const panelInputs={};
+const panelInputs={}, panelSrc={}; // panelSrc: nguồn của từng ô ('basic' | 'detail' | 'manual')
 function buildPanel(){
   const wrap=$('#panel-groups'); wrap.textContent='';
   NTH_PANEL.forEach(g=>{
     const box=el('div',{class:'pgroup'},el('h3',{text:g.group}));
     g.fields.forEach(f=>{
       const id='p-'+f.key;
-      const inp=el('input',{type:'number',id,inputmode:'numeric',min:'0',step:'1'});
+      const inp=el('input',{type:'number',id,inputmode:f.pct?'decimal':'numeric',min:'0',step:f.pct?'any':'1'});
       inp.value=state.panel[f.key]??'';
-      inp.addEventListener('input',()=>{state.panel[f.key]=inp.value===''?'':Number(inp.value);inp.classList.remove('ocr','miss');save();render();});
+      inp.addEventListener('input',()=>{state.panel[f.key]=inp.value===''?'':Number(inp.value);inp.classList.remove('ocr','miss');panelSrc[f.key]='manual';save();render();});
       panelInputs[f.key]=inp;
       box.append(el('div',{class:'pf'},el('label',{for:id,text:f.label}),inp));
     });
@@ -529,27 +642,41 @@ function setPanel(vals,mark){
   }
   save(); render();
 }
-$('#btn-sample').onclick=()=>setPanel(clone(NTH_SAMPLE_PANEL),false);
+// Ghi số đọc từ ảnh vào bảng: chỉ đánh dấu xanh các ô vừa đọc; số trung bình (weak) không ghi đè ô đã có số riêng.
+function mergeOcr(target,inputs,src,res){
+  let n=0;
+  for(const k in res.vals){
+    if(!(k in inputs)) continue;
+    if(res.weak.has(k)&&(src[k]==='basic'||src[k]==='manual')) continue;
+    target[k]=res.vals[k]; inputs[k].value=res.vals[k];
+    inputs[k].classList.remove('miss'); inputs[k].classList.add('ocr');
+    src[k]=res.weak.has(k)?'detail':(res.screens.includes('basic')?'basic':'detail'); n++;
+  }
+  return n;
+}
+function applyClass(id){
+  if(!id||!NTH_CLASS[id]) return;
+  const s=S(), c=NTH_CLASS[id];
+  s.cls=id; s.myType=c.type;
+  if(s.bigPassive===id) s.bigPassive='';
+  const p=NTH_ROLES[c.role]; s.role=c.role; s.offWeight=p.offWeight; s.defWeight=p.defWeight;
+}
+$('#btn-sample').onclick=()=>{for(const k in panelSrc) delete panelSrc[k]; setPanel(clone(NTH_SAMPLE_PANEL),false);};
 $('#btn-clear-panel').onclick=()=>setPanel({},false);
 
 async function panelOcr(files){
-  const file=files.find(f=>f.type.startsWith('image/')); if(!file) return;
+  files=files.filter(f=>f.type.startsWith('image/')).slice(0,2); if(!files.length) return;
   const ui=uiFor('ocr'), prev=$('#shot-preview');
-  prev.src=URL.createObjectURL(file); prev.hidden=false;
+  prev.src=URL.createObjectURL(files[0]); prev.hidden=false;
   try{
-    const img=await loadImage(file), found={}, total=Object.keys(panelInputs).length;
-    // Khung chỉ số nằm bên phải màn hình; lượt cuối đọc cả ảnh nếu vẫn thiếu.
-    await ocr(img,[[[0.70,0.30,1,0.95],'thr'],[[0.70,0.30,1,0.95],'inv'],[[0,0,1,1],'thr']],text=>{
-      const r=NTH_CALC.parsePanelText(text);
-      if(r._type&&!found._type) Object.defineProperty(found,'_type',{value:r._type,enumerable:false});
-      for(const k in r) if(found[k]==null) found[k]=r[k];
-      return Object.keys(found).length>=total;
-    },ui);
-    const got=Object.keys(found).filter(k=>k in panelInputs).length;
-    if(!got){ui.status('Không đọc được chỉ số nào. Hãy thử ảnh rõ hơn (tab PVP, cả màn hình) hoặc nhập tay.','err');return;}
-    setPanel(found,true);
-    if(found._type){S().myType=found._type;buildAdvanced();}
-    ui.status(`Đọc được ${got}/${total} chỉ số. Hãy kiểm tra lại các ô trước khi so sánh.`,got===total?'ok':'');
+    const res=await readStatShots(files,ui);
+    const n=mergeOcr(state.panel,panelInputs,panelSrc,res);
+    if(!n){ui.status('Không đọc được chỉ số nào. Hãy thử ảnh rõ hơn (chụp cả màn hình) hoặc nhập tay.','err');return;}
+    for(const k in panelInputs) if(state.panel[k]===''||state.panel[k]==null) panelInputs[k].classList.add('miss');
+    if(res.cls) applyClass(res.cls); else if(res.type) S().myType=res.type;
+    buildAdvanced(); save(); render();
+    const what=[...new Set(res.screens)].map(screenName).join(' + ');
+    ui.status(`Đọc được ${n} chỉ số từ màn hình ${what}${res.cls?` · nhận ra class ${NTH_CLASS[res.cls].name}`:''}. Hãy kiểm tra lại các ô.`+(res.screens.includes('detail')?'':' Thêm ảnh "Xem chi tiết" để có Phá Khiên, Khiên Khí, Sát Thương Chí Mạng.'),'ok');
   }catch(e){ui.status(e.message||String(e),'err');}
   finally{ui.hide();}
 }
@@ -798,21 +925,21 @@ function buildAdvanced(){
   $('#heal-kv').append(lv);
   syncRole();
   kvInputs($('#formula-kv'),[
-    ['kDef','Hệ số phòng thủ (10743)'],['kElem','Hệ số kháng ng.tố (2016)'],
-    ['critA','Bạo kích A (1.1445)'],['critB','Bạo kích B (80)'],['critC','Bạo kích C (1602.5)'],
-    ['critMult','Bội số chí mạng (1.5)'],['skillK','Hệ số kỹ năng K'],['skillB','Sát thương cơ sở B'],
+    ['kDef','Hệ số phòng thủ (10552)'],['kElem','Hệ số kháng ng.tố (1965)'],
+    ['k1','Hệ số kỹ năng k1 (1981)'],['k2','Hệ số kỹ năng k2 (1)'],
+    ['hitBase','Chính xác: nền (0.95)'],['hitA','Chính xác: A (1.43)'],['hitC','Chính xác: C (5950)'],['blockDmg','Đòn bị đỡ: tỉ lệ sát thương (0.5)'],
+    ['critA','Chí mạng: A (115)'],['critB','Chí mạng: B (−1230)'],['critC','Chí mạng: C (1548)'],
+    ['critMin','Tỉ lệ chí mạng tối thiểu % (5)'],['critThem','Tỉ lệ chí mạng cộng thêm %'],
     ['linhVanPct','Linh Vận +1 ≈ % sát thương'],
   ],s);
-  kvInputs($('#aki-kv'),[
-    ['tanCong','Công · Tấn Công'],['chinhXac','Công · Chính Xác'],['ngToRieng','Công · Ng.Tố theo hệ/phe'],
-    ['phaKhien','Công · Phá Khiên'],['khacBoss','Công · Khắc Boss'],['khacPhai','Công · Khắc phái (100% gặp)'],
-    ['sucManh','Công · Sức Mạnh (ước lượng)'],['khiHai','Công · Khí Hải'],['thanPhap','Công · Thân Pháp'],
-    ['canCot','Công · Căn Cốt'],['sucBen','Công · Sức Bền'],
-    ['doDon','Thủ · Đỡ Đòn (đơn vị công)'],['khangPhai','Thủ · Kháng phái (đơn vị công)'],
-  ],s.akiOff);
+  kvInputs($('#conv-kv'),[
+    ['convMainAtk','1 Sức Mạnh/Khí Hải → tấn công (4.65)'],['convMainPP','1 Sức Mạnh/Khí Hải → phá phòng (2)'],
+    ['convThanCX','1 Thân Pháp → chính xác (0.83)'],['convThanCM','1 Thân Pháp → chí mạng (1.6)'],
+    ['atkHuyetHa','Huyết Hà: 1 Căn Cốt → tấn công (1.4–1.9)'],['atkCuuLinh','Cửu Linh: 1 Sức Bền → tấn công (1.4–1.9)'],
+    ['ngToRiengRatio','Dòng nguyên tố theo hệ/phe = × Tất Cả Nguyên Tố'],
+  ],s);
   kvInputs($('#aki-def-kv'),[
-    ['hp','Thủ · HP (147/2766)'],['khienKhi','Thủ · Khiên Khí'],['khienLoai','Thủ · Khiên Khí Ngoại/Nội'],
-    ['khiHai','Thủ · Khí Hải'],['canCot','Thủ · Căn Cốt'],['sucBen','Thủ · Sức Bền'],
+    ['hp','Thủ · HP (147/2766)'],['canCot','Thủ · Căn Cốt (Aki)'],['sucBen','Thủ · Sức Bền (Aki)'],
   ],s.akiDef);
   buildOpp();
   segInit('#mytype-seg',()=>s.myType,v=>s.myType=v);
@@ -821,8 +948,8 @@ function buildAdvanced(){
 }
 // ---------- Build ----------
 const ROLE_HINT={
-  dps:'Chấm theo % sát thương kỳ vọng (công thức) và % máu hiệu dụng. Tổng = Công + Thủ × 42%.',
-  healer:'Chấm theo bảng lợi ích Aki cho trị liệu PvP: Tổng = điểm trị liệu + điểm phòng ngự × 5/12. Đơn vị là "điểm", không phải %. Không cần chỉ số nhân vật.',
+  dps:'Chấm theo % sát thương kỳ vọng (công thức Hel) và % máu hiệu dụng. Tổng = Công + Thủ × 42%.',
+  healer:'Chấm theo bảng lợi ích Aki cho trị liệu PvP: Tổng = điểm trị liệu + điểm phòng ngự × 5/12. Đơn vị là "điểm", không phải %. Không cần chỉ số nhân vật. Căn Cốt / Sức Bền có điểm trị liệu khi có nội tại lớn Huyết Hà / Cửu Linh.',
   tank:'Ưu tiên sống sót: Tổng = Thủ × 100% + Công × 25%. Thủ = % máu hiệu dụng tăng thêm khi bị một DPS đánh.',
 };
 const isHealer=()=>S().role==='healer';
@@ -832,8 +959,7 @@ function syncRole(){
   $('#role-hint').textContent=ROLE_HINT[s.role]||'';
   $('#self-hint').innerHTML=SELF_HINT[s.role]||'';
   $('#opp-card').hidden=s.role==='healer';
-  $('#noitai-row').hidden=s.role!=='healer';
-  $('#noitai-sel').value=s.noiTai;
+  syncClass();
   $('#heal-sub').hidden=s.role!=='healer';
   document.querySelectorAll('.formula-only').forEach(n=>n.hidden=s.role==='healer');
   $('#l-offW').textContent=s.role==='healer'?'Trọng số trị liệu trong Tổng':'Trọng số công trong Tổng';
@@ -844,7 +970,41 @@ $('#role-seg').onclick=e=>{
   s.role=role; s.offWeight=p.offWeight; s.defWeight=p.defWeight;
   buildAdvanced(); save(); render();
 };
-$('#noitai-sel').onchange=e=>{S().noiTai=e.target.value;save();render();};
+// ---------- Class & nội tại lớn ----------
+const fmtConv=c=>Object.entries(c).map(([k,v])=>`${typeof v==='string'?S()[v]:v} ${({cong:'tấn công',phaPhong:'phá phòng',chinhXac:'chính xác',chiMang:'chí mạng',doDonNgoai:'đỡ đòn',doDonNoi:'',khienKhi:'khiên khí',hp:'HP'})[k]}`).filter(t=>!/ $/.test(t)).join(' + ');
+const attrName=a=>({main:S().myType==='noi'?'Khí Hải':'Sức Mạnh',sucManh:'Sức Mạnh',khiHai:'Khí Hải',canCot:'Căn Cốt',thanPhap:'Thân Pháp',sucBen:'Sức Bền'})[a];
+function buildClassSelects(){
+  const cs=$('#cls-sel'); cs.textContent='';
+  NTH_CLASSES.forEach(c=>cs.append(el('option',{value:c.id,text:`${c.name} (${c.type==='noi'?'nội':'ngoại'} công)`})));
+  const os=$('#oppcls-sel'); os.textContent='';
+  os.append(el('option',{value:'',text:'Chưa rõ'}));
+  NTH_CLASSES.forEach(c=>os.append(el('option',{value:c.id,text:c.name})));
+}
+function syncClass(){
+  const s=S(), c=NTH_CLASS[s.cls];
+  $('#cls-sel').value=s.cls; $('#cls-icon').src=c?c.icon:''; $('#cls-icon').alt=c?c.name:'';
+  const bp=$('#bp-sel'); bp.textContent='';
+  bp.append(el('option',{value:'',text:'Không'}));
+  NTH_CLASSES.filter(x=>x.id!==s.cls&&Object.keys(NTH_PASSIVES[x.id]||{}).length).forEach(x=>bp.append(el('option',{value:x.id,text:x.name})));
+  bp.value=s.bigPassive||'';
+  const list=$('#conv-list'); list.textContent='';
+  const add=(who,p)=>Object.entries(p).forEach(([a,c])=>list.append(el('span',{},el('b',{text:who}),` 1 ${attrName(a)} = ${fmtConv(c)}`)));
+  list.append(el('span',{},el('b',{text:'Chung:'}),` 1 ${attrName('main')} = ${s.convMainAtk} tấn công + ${s.convMainPP} phá phòng · 1 Thân Pháp = ${s.convThanCX} chính xác + ${s.convThanCM} chí mạng`));
+  [s.cls,s.bigPassive].filter(Boolean).forEach(id=>{
+    const p=NTH_PASSIVES[id]||{};
+    if(Object.keys(p).length) add(NTH_CLASS[id].name+':',p);
+    else list.append(el('span',{},el('b',{text:NTH_CLASS[id].name+':'}),' chưa có số liệu nội tại lớn'));
+  });
+  const oc=$('#oppcls-sel'); oc.value=s.oppCls||'';
+  const oi=$('#oppcls-icon'); oi.hidden=!s.oppCls; if(s.oppCls){oi.src=NTH_CLASS[s.oppCls].icon; oi.alt=NTH_CLASS[s.oppCls].name;}
+}
+$('#cls-sel').onchange=e=>{applyClass(e.target.value);buildAdvanced();save();render();};
+$('#bp-sel').onchange=e=>{S().bigPassive=e.target.value;syncClass();save();render();};
+$('#oppcls-sel').onchange=e=>{
+  const s=S(); s.oppCls=e.target.value;
+  if(s.oppCls){s.oppType=NTH_CLASS[s.oppCls].type; s.oppMode='custom';}
+  buildOpp(); syncClass(); save(); render();
+};
 
 // ---------- Đối thủ ----------
 // Gợi ý theo build: phần nào của đối thủ được dùng.
@@ -858,18 +1018,20 @@ const SELF_HINT={
   healer:'Build Tố Vấn chấm theo bảng điểm Aki nên không cần chỉ số. Bạn vẫn có thể nhập để lưu lại.',
 };
 // Nhóm nào của đối thủ được dùng trong tính toán (để làm nổi bật).
-const OPP_USED={'Công':['cong','phaPhong','nguyenTo','xuyenKhang','chiMang'],'Phòng Thủ':['ngoaiThu','noiThu','khangCMNgoai','khangCMNoi','khangNgTo']};
+const OPP_USED={'Công':['cong','phaPhong','nguyenTo','xuyenKhang','chinhXac','chiMang','khacPhai'],
+  'Phòng Thủ':['ngoaiThu','noiThu','doDonNgoai','doDonNoi','khangCMNgoai','khangCMNoi','khangNgTo','khangPhai'],
+  'Chi tiết':['phaKhien','khienKhi','stcm','giamSTCM','pKhacPhai','pKhangPhai','giamST']};
 const oppInputs={};
 function buildOpp(mark){
   const s=S(), wrap=$('#opp-groups'); wrap.textContent='';
   NTH_PANEL.forEach(g=>{
     if(g.group==='Cơ Bản') return; // thuộc tính cơ bản của đối thủ không dùng
     const used=OPP_USED[g.group]||[];
-    const note=g.group==='Công'?(s.role==='tank'?'đánh vào bạn (quan trọng)':'đánh vào bạn'):(s.role==='dps'?'bạn đánh vào (quan trọng)':'bạn đánh vào');
+    const note=g.group==='Công'?(s.role==='tank'?'đánh vào bạn (quan trọng)':'đánh vào bạn'):g.group==='Phòng Thủ'?(s.role==='dps'?'bạn đánh vào (quan trọng)':'bạn đánh vào'):'màn hình Xem chi tiết';
     const box=el('div',{class:'pgroup'},el('h3',{text:`${g.group} · ${note}`}));
     g.fields.forEach(f=>{
       const id='o-'+f.key;
-      const inp=el('input',{type:'number',id,inputmode:'numeric',min:'0',step:'1'});
+      const inp=el('input',{type:'number',id,inputmode:f.pct?'decimal':'numeric',min:'0',step:f.pct?'any':'1'});
       inp.value=s.opp[f.key]??'';
       if(mark) inp.classList.add(f.key in mark?'ocr':'miss');
       inp.addEventListener('input',()=>{s.opp[f.key]=inp.value===''?'':Number(inp.value);inp.classList.remove('ocr','miss');save();syncOppWarn();render();});
@@ -900,24 +1062,21 @@ function effSettings(){
   if(s.oppMode!=='custom'||!s.oppType||s.oppType==='mix') return s;
   return {...s,oppNoiRatio:s.oppType==='noi'?1:0};
 }
+const oppSrc={};
 async function oppOcr(files){
-  const file=files.find(f=>f.type.startsWith('image/')); if(!file) return;
-  const ui=uiFor('opp'), need=[...OPP_USED['Công'],...OPP_USED['Phòng Thủ']];
+  files=files.filter(f=>f.type.startsWith('image/')).slice(0,2); if(!files.length) return;
+  const ui=uiFor('opp');
   try{
-    const img=await loadImage(file), found={}; let type=null;
-    await ocr(img,[[[0.70,0.30,1,0.95],'thr'],[[0.70,0.30,1,0.95],'inv'],[[0,0,1,1],'thr']],text=>{
-      const r=NTH_CALC.parsePanelText(text);
-      if(!type&&r._type) type=r._type;
-      for(const k in r) if(found[k]==null) found[k]=r[k];
-      return need.every(k=>found[k]!=null);
-    },ui);
-    const got=Object.keys(found).filter(k=>k in oppInputs||k==='hp');
+    const res=await readStatShots(files,ui);
+    const s=S();
+    const got=Object.keys(res.vals).filter(k=>k in s.opp||k in oppInputs);
     if(!got.length){ui.status('Không đọc được chỉ số nào của đối thủ. Hãy thử ảnh rõ hơn hoặc nhập tay.','err');return;}
-    const s=S(); got.forEach(k=>s.opp[k]=found[k]);
-    s.oppMode='custom'; if(type) s.oppType=type;
-    buildOpp(found); save(); render();
-    const n=need.filter(k=>found[k]!=null).length;
-    ui.status(`Đọc được ${n}/${need.length} chỉ số cần dùng${type?`, đối thủ đánh ${type==='noi'?'Nội':'Ngoại'} công`:''}. Hãy kiểm tra lại các ô.`,n===need.length?'ok':'');
+    for(const k of got){ if(res.weak.has(k)&&(oppSrc[k]==='basic')) continue; s.opp[k]=res.vals[k]; oppSrc[k]=res.weak.has(k)?'detail':'basic'; }
+    s.oppMode='custom';
+    if(res.cls){s.oppCls=res.cls; s.oppType=NTH_CLASS[res.cls].type;} else if(res.type) s.oppType=res.type;
+    buildOpp(Object.fromEntries(got.map(k=>[k,1]))); syncClass(); save(); render();
+    const what=[...new Set(res.screens)].map(screenName).join(' + ');
+    ui.status(`Đọc được ${got.length} chỉ số đối thủ từ màn hình ${what}${res.cls?` · class ${NTH_CLASS[res.cls].name}`:res.type?`, đánh ${res.type==='noi'?'Nội':'Ngoại'} công`:''}. Hãy kiểm tra lại các ô.`,'ok');
   }catch(e){ui.status(e.message||String(e),'err');}
   finally{ui.hide();}
 }
@@ -927,7 +1086,7 @@ pasteZone($('#opp-card'),f=>oppOcr([f]),'chỉ số đối thủ');
 $('#btn-reset-settings').onclick=()=>{
   const o=S(); state.settings=clone(NTH_DEFAULT_SETTINGS);
   Object.assign(state.settings,{showSchool:o.showSchool,role:o.role,offWeight:NTH_ROLES[o.role].offWeight,defWeight:NTH_ROLES[o.role].defWeight,
-    opp:o.opp,oppMode:o.oppMode,oppType:o.oppType,noiTai:o.noiTai,myType:o.myType});
+    opp:o.opp,oppMode:o.oppMode,oppType:o.oppType,myType:o.myType,cls:o.cls,bigPassive:o.bigPassive,oppCls:o.oppCls});
   buildAdvanced(); save(); render();
 };
 
@@ -1012,11 +1171,15 @@ function doRender(){
 function facts(out,r){
   const d=r.detail; if(!d) return;
   const f=(v,l)=>el('div',{class:'fact'},el('b',{text:v}),el('span',{text:l}));
-  out.append(el('h3',{text:'Chỉ số đang dùng để tính'}),
+  out.append(el('h3',{text:'Chỉ số đang dùng để tính (sau khi tháo Viên A)'}),
     el('div',{class:'facts'},
+      f(Math.round(d.hit*100)+'%','Đòn trúng (không bị đỡ)'),
       f(Math.round(d.pCrit*100)+'%','Tỉ lệ chí mạng lên đối thủ'),
+      f('+'+Math.round(d.critBonus*100)+'%','Sát thương chí mạng thêm'),
       f(Math.round(d.rDef*100)+'%','Đối thủ giảm sát thương nhờ thủ'),
       f(Math.round(d.rElem*100)+'%','Đối thủ giảm sát thương nguyên tố'),
+      f(fmt(d.shield),'Khiên khí đối thủ còn lại'),
+      f(fmt(d.atkEff),'Tấn công hiệu dụng (sau khiên, khắc/kháng phái)'),
       f(Math.round(d.dElem/(d.dCong+d.dElem)*100)+'%','Phần nguyên tố trong sát thương'),
     ));
 }
@@ -1046,11 +1209,14 @@ function renderEnh(){
     el('thead',{},el('tr',{},el('th',{text:'Dòng'}),el('th',{class:'A',text:'Hiện tại (đeo A)'}),el('th',{class:'B',text:'Sau khi đổi sang B'}))),tb)));
 }
 
+$('#btn-help').onclick=()=>$('#help').showModal();
+$('#help-close').onclick=()=>$('#help').close();
+$('#help').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();});
 // ---------- Khởi động ----------
 buildPanel();
 for(let i=0;i<SLOTS;i++) buildSlot(i);
 buildReplace(); buildSum();
-buildStone('A'); buildStone('B'); buildAdvanced();
+buildStone('A'); buildStone('B'); buildClassSelects(); buildAdvanced();
 render();
 })();
 </script>

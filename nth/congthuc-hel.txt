@@ -1,0 +1,84 @@
+CÔNG THỨC SÁT THƯƠNG PVP — BẢN HEL (CẤP 79, MÙA 2.1)
+=====================================================
+Nguồn: Google Sheet "Nhập thuộc tính" do Hel (tiktok @hel.nth / discord @n.ii._.) chỉnh cho bản Việt,
+Nguồn gốc: máy tính của Bilibili: 折字愿为安 (Chiết Tự Vi An), bản 2.1.8 (29/08/2024).
+https://docs.google.com/spreadsheets/d/1IoQm5o1DzjcGhJkDMcgt5jwbh1J200sA7yuDu2f2hFk
+Video giới thiệu: https://www.tiktok.com/@hel.nth/video/7706637602501201160
+
+Đã kiểm tra: chạy lại các công thức dưới đây cho ra đúng số trong bảng
+(sát thương không chí mạng 4618.3, kỳ vọng 6133.8, lợi ích từng dòng nội công khớp 100%).
+Ghi chú của tác giả: PVP và PVE không dùng cùng một bộ công thức. Kết quả có thể mất hiệu lực khi game cập nhật.
+
+1. SÁT THƯƠNG (chưa tính chí mạng)
+----------------------------------
+D = tỉ lệ kỹ năng ×
+    { [k1 + k2 × (Tấn công − Khiên khí còn lại + Khắc lưu phái − Kháng lưu phái
+                  + Tăng cường kỹ năng − Kháng kỹ năng)] × (1 − Giảm miễn phòng thủ)
+      + k2 × Tất cả nguyên tố × (1 − Giảm miễn kháng nguyên tố) }
+    × (1 + % Khắc lưu phái − % Kháng lưu phái)
+    × (1 + % Tăng cường kỹ năng − % Kháng kỹ năng)
+    × (1 + % Tăng sát thương − % Giảm sát thương)
+
+k1, k2: hệ số kỹ năng. Bảng dùng k1 = 1981, k2 = 1 (Thần Cửu).
+  Ví dụ khác: đòn thường đoạn 1 Huyền Cơ cấp 30: k1 = 1337, k2 = 0.63.
+  Ước lượng k1 theo cấp kỹ năng: 928 + 81 × (cấp kỹ năng − 15).
+→ Khắc lưu phái / Kháng lưu phái (dạng số) cộng/trừ THẲNG vào tấn công, 1 điểm = 1 tấn công.
+
+2. PHÒNG THỦ
+------------
+Phòng thủ còn lại   = max(Phòng thủ − Phá phòng, 0)
+Giảm miễn phòng thủ = Phòng thủ còn lại / (Phòng thủ còn lại + 10552)     (tài liệu cũ: 10743)
+
+3. NGUYÊN TỐ
+------------
+Giảm miễn kháng nguyên tố = max( (Kháng − Xuyên kháng) / (Kháng − Xuyên kháng + 1965), 0 )   (cũ: 2016)
+
+4. KHIÊN KHÍ / PHÁ KHIÊN
+------------------------
+Khiên khí còn lại = 0                              nếu Phá khiên ≥ Khiên khí
+                  = 0.5 × (Khiên khí − Phá khiên)    nếu 1/3 Khiên khí ≤ Phá khiên ≤ Khiên khí
+                  = Khiên khí − 2 × Phá khiên        nếu Phá khiên ≤ 1/3 Khiên khí  (PVP thường gặp, bảng mặc định dùng nhánh này)
+→ Khi phá khiên < 1/3 khiên khí đối thủ: 1 phá khiên = 2 tấn công. Khiên khí còn lại bị TRỪ vào tấn công của bên đánh.
+Hel: lúc đầu mùa phần phá khiên chưa đúng, phải chờ khoảng bản 2.1.2.
+
+5. CHÍNH XÁC / ĐỠ ĐÒN
+---------------------
+X = Chính xác − Đỡ đòn
+Tỉ lệ chính xác = min( 0.95 + 1.43 × X / (X + 5950), 1 )
+Đòn bị đỡ: gây 50% sát thương và không chí mạng.
+
+6. CHÍ MẠNG
+-----------
+C = Chí mạng − Kháng chí mạng
+Tỉ lệ chí mạng = max( (115 × C − 1230) / (C + 1548) / 100 , 5% ) + Tỉ lệ chí mạng thêm
+STCM: sát thương chí mạng cộng thêm (ví dụ 176.4% = đòn chí mạng gây 276.4%).
+Phòng thủ chí mạng của bên bị đánh (ví dụ 55%) trừ vào STCM.
+
+7. SÁT THƯƠNG KỲ VỌNG
+---------------------
+Kỳ vọng = D × chính_xác × (1 + (STCM − Phòng thủ chí mạng) × tỉ_lệ_chí_mạng) + 0.5 × D × (1 − chính_xác)
+Chí mạng 3 kim (ước tính tối đa) = (1 + STCM + 1.9) × D_kỳ_vọng
+
+8. QUY ĐỔI THUỘC TÍNH CƠ BẢN (chưa gồm nội tại, % cộng thêm)
+-----------------------------------------------------------
+1 Sức mạnh / Khí hải = 4.65 tấn công + 2 phá phòng
+1 Thân pháp          = 0.83 chính xác + 1.6 chí mạng
+1 Căn cốt            = 2 phá phòng (đặc tính Long Ngâm)
+
+9. LỢI ÍCH DÒNG NỘI CÔNG (bảng mẫu, tối đa mỗi dòng)
+---------------------------------------------------
+262 phá phòng 1.00% | 179 tấn công 3.01% | 106 nguyên tố 2.65% | 139 phá khiên 4.67%
+91 chí mạng 2.93%   | 67 chính xác 1.18% | 28 khí hải/sức mạnh 2.40% (Hel tự thêm)
+Lưu ý: dòng được hưởng phần trăm (như tấn công) còn được Kiếm Tâm và Phá Phủ khuếch đại.
+Tương đương: Côn Ngô ≈ 14.2% STCM (19.2%); Minh Hựu ≈ 286 khắc lưu phái + 357 phá phòng + 238 nguyên tố (chưa chắc).
+
+10. SỐ LIỆU MẪU TRONG BẢNG
+-------------------------
+Bên bị đánh: Phòng thủ 9035, Khiên khí 2105, Kháng nguyên tố 155, Kháng lưu phái 2298, Đỡ đòn 1329,
+  Kháng chí mạng 450, % kháng lưu phái 1%, Máu 137000, Phòng thủ chí mạng 55%, Kháng kỹ năng 0.
+Bên tấn công: Xuyên kháng 173, Tấn công 5827, Phá phòng 3893, Phá khiên 30, Tất cả nguyên tố 1654,
+  Khắc lưu phái 22, Chính xác 1134, Chí mạng 998, STCM 176.4%, Tỉ lệ chí mạng thêm 5%, % Khắc lưu phái 16.5%.
+Tham khảo: Tháp bang hội (phòng thủ 787, đỡ đòn 343, kháng CM 250);
+  Thiên Cơ Mê Thành (phòng thủ 12020, kháng ng.tố 2500, kháng lưu phái 13900, đỡ đòn 2556, kháng CM 2315).
+
+Còn thiếu theo tác giả: % giảm sát thương (bản 2.2), kháng/tăng cường kỹ năng chưa đủ cột.
